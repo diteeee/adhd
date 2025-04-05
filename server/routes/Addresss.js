@@ -28,12 +28,12 @@ router.get("/:addressID", async (req, res) => {
 // Create new address
 router.post("/", async (req, res) => {
     try {
-        const { addressID, rruga, qyteti, zipCode, shteti, addressUserID } = req.body;
+        const { rruga, qyteti, zipCode, shteti, addressUserID } = req.body;
         const user = await User.findByPk(addressUserID);
         if (!user) {
             return res.status(404).json({ error: "User not found." });
         }
-        const newAddress = await Address.create({ addressID, rruga, qyteti, zipCode, shteti, addressUserID });
+        const newAddress = await Address.create({ rruga, qyteti, zipCode, shteti, addressUserID });
         res.status(201).json(newAddress);
     } catch (error) {
         res.status(500).json({ error: "Failed to create address." });
@@ -43,12 +43,12 @@ router.post("/", async (req, res) => {
 // Update address by ID
 router.put("/:addressID", async (req, res) => {
     try {
-        const { addressID, rruga, qyteti, zipCode, shteti, addressUserID } = req.body;
+        const { rruga, qyteti, zipCode, shteti, addressUserID } = req.body;
         const address = await Address.findByPk(req.params.addressID);
         if (!address) {
             return res.status(404).json({ error: "Address not found." });
         }
-        await address.update({ addressID, rruga, qyteti, zipCode, shteti, addressUserID });
+        await address.update({ rruga, qyteti, zipCode, shteti, addressUserID });
         res.json(address);
     } catch (error) {
         res.status(500).json({ error: "Failed to update address." });

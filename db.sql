@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `adhd` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `adhd`;
 -- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
 -- Host: localhost    Database: adhd
@@ -265,6 +263,37 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` VALUES (1,'arba','maxhuni','044726482','a@gmail.com','12345678','admin','2025-04-05 12:39:53','2025-04-05 12:39:53');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `wishlists`
+--
+
+DROP TABLE IF EXISTS `wishlists`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wishlists` (
+  `wishlistID` int NOT NULL AUTO_INCREMENT,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL,
+  `wishlistUserID` int NOT NULL,
+  `wishlistProductID` int NOT NULL,
+  PRIMARY KEY (`wishlistID`),
+  KEY `wishlistUserID` (`wishlistUserID`),
+  KEY `wishlistProductID` (`wishlistProductID`),
+  CONSTRAINT `wishlists_ibfk_1` FOREIGN KEY (`wishlistUserID`) REFERENCES `users` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `wishlists_ibfk_2` FOREIGN KEY (`wishlistProductID`) REFERENCES `products` (`productID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wishlists`
+--
+
+LOCK TABLES `wishlists` WRITE;
+/*!40000 ALTER TABLE `wishlists` DISABLE KEYS */;
+INSERT INTO `wishlists` VALUES (1,'2025-04-07 16:59:02','2025-04-07 16:59:02',1,1);
+/*!40000 ALTER TABLE `wishlists` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -275,4 +304,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-04-07 11:52:15
+-- Dump completed on 2025-04-07 19:00:08

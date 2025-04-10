@@ -1,32 +1,16 @@
-module.exports = (sequelize, DataTypes) => {
-    const Wishlist = sequelize.define("Wishlist", {
-        wishlistID: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            primaryKey: true,
-            autoIncrement: true
-        },
-    });
+const mongoose = require('mongoose');
 
-    Wishlist.associate = (models) => {
-        Wishlist.belongsTo(models.User, {
-            foreignKey: {
-                name: 'wishlistUserID',
-                allowNull: false
-            },
-            onDelete: 'CASCADE'
-        });
-        models.User.hasMany(Wishlist, { foreignKey: 'wishlistUserID' });
+const wishlistSchema = new mongoose.Schema({
+    userID: {
+        type: Number,
+        required: true
+    },
+    productID: {
+        type: Number,
+        required: true
+    }
+});
 
-        Wishlist.belongsTo(models.Product, {
-            foreignKey: {
-                name: 'wishlistProductID',
-                allowNull: false
-            },
-            onDelete: 'CASCADE'
-        });
-        models.Product.hasMany(Wishlist, { foreignKey: 'wishlistProductID' });
-    };
+const Wishlist = mongoose.model('Wishlist', wishlistSchema);
 
-    return Wishlist;
-};
+module.exports = Wishlist;

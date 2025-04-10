@@ -1,40 +1,24 @@
-module.exports = (sequelize, DataTypes) => {
-    const Review = sequelize.define("Review", {
-        reviewID: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        rating: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        koment: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-    });
+const mongoose = require('mongoose');
 
-    Review.associate = (models) => {
-        Review.belongsTo(models.User, {
-            foreignKey: {
-                name: 'reviewUserID',
-                allowNull: false
-            },
-            onDelete: 'CASCADE'
-        });
-        models.User.hasMany(Review, { foreignKey: 'reviewUserID' });
+const reviewSchema = new mongoose.Schema({
+    reviewUserID: {
+        type: Number,
+        required: true
+    },
+    reviewProductID: {
+        type: Number,
+        required: true
+    },
+    rating: {
+        type: String,
+        required: true
+    },
+    koment: {
+        type: String,
+        required: true
+    }
+}, { timestamps: true });
 
-        Review.belongsTo(models.Product, {
-            foreignKey: {
-                name: 'reviewProductID',
-                allowNull: false
-            },
-            onDelete: 'CASCADE'
-        });
-        models.Product.hasMany(Review, { foreignKey: 'reviewProductID' });
-    };
+const Review = mongoose.model('Review', reviewSchema);
 
-    return Review;
-};
+module.exports = Review;

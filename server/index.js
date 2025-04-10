@@ -1,11 +1,10 @@
 const express = require("express");
 const app = express();
 const cors = require('cors');
+const mongoose = require("mongoose");
 
 app.use(express.json());
 app.use(cors());
-
-const db = require('./models');
 
 const userRouter = require('./routes/Users');
 app.use("/users", userRouter);
@@ -34,8 +33,17 @@ app.use("/reviews", reviewRouter);
 const wishlistRouter = require('./routes/Wishlists');
 app.use("/wishlists", wishlistRouter);
 
-db.sequelize.sync().then(() => {
+
+mongoose.connect("mongodb://127.0.0.1:27017/adhd", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => {
+    console.log("Connected to adhd");
     app.listen(3001, () => {
-        console.log("server running on port 3001");
+        console.log("Server running on port 3001");
     });
+})
+.catch((err) => {
+    console.error("MongoDB connection error:", err);
 });

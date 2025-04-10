@@ -1,79 +1,125 @@
-const express = require("express");
+const express = require('express');
+const { User, Product } = require('../models'); // Sequelize models for User and Product
+const Review = require('../models/Reviews'); // MongoDB Review model
 const router = express.Router();
-const { Review, User, Product } = require("../models");
 
-// Get all review
-router.get("/", async (req, res) => {
-    try {
-        const review = await Review.findAll({ include: User, Product });
-        res.json(review);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve review." });
-    }
-});
+//create
+router.post('/', async (req, res) => {
+    const { reviewUserID, reviewProductID, rating, koment } = req.body;
 
-// Get review by ID
-router.get("/:reviewID", async (req, res) => {
     try {
-        const review = await Review.findByPk(req.params.reviewID, { include: User, Product });
-        if (!review) {
-            return res.status(404).json({ error: "Review not found." });
-        }
-        res.json(review);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve review." });
-    }
-});
-
-// Create new review
-router.post("/", async (req, res) => {
-    try {
-        const { rating, koment, reviewUserID, reviewProductID } = req.body;
         const user = await User.findByPk(reviewUserID);
         if (!user) {
-            return res.status(404).json({ error: "User not found." });
+            return res.status(404).json({ error: 'User not found' });
         }
+
         const product = await Product.findByPk(reviewProductID);
         if (!product) {
-            return res.status(404).json({ error: "Product not found." });
+            return res.status(404).json({ error: 'Product not found' });
         }
-        const newReview = await Review.create({ rating, koment, reviewUserID, reviewProductID });
-        res.status(201).json(newReview);
+
+        const review = new Review({
+            reviewUserID,
+            reviewProductID,
+            rating,
+            koment
+        });
+
+        await review.save();
+        res.status(201).json(review);
     } catch (error) {
-        res.status(500).json({ error: "Failed to create review." });
+        res.status(500).json({ error: 'Failed to create review' });
     }
 });
 
-// Update review by ID
-router.put("/:reviewID", async (req, res) => {
+//get all reviews for a specific product
+router.get('/product/:productID', async (req, res) => {
+    const { productID } = req.params;
+
     try {
-        const { rating, koment, reviewUserID, reviewProductID } = req.body;
-        const review = await Review.findByPk(req.params.reviewID);
-        if (!review) {
-            return res.status(404).json({ error: "Review not found." });
+        const reviews = await Review.find({ reviewProductID: productID });
+
+        if (!reviews || reviews.length === 0) {
+            return res.status(404).json({ message: 'No reviews found for this product' });
         }
-        const product = await Product.findByPk(reviewProductID);
+
+        const product = await Product.findByPk(productID);
         if (!product) {
-            return res.status(404).json({ error: "Product not found." });
+            return res.status(404).json({ error: 'Product not found' });
         }
-        await review.update({ rating, koment, reviewUserID, reviewProductID });
-        res.json(review);
+
+        const userPromises = reviews.map((review) =>
+            User.findByPk(review.reviewUserID)
+        );
+        const users = await Promise.all(userPromises);
+
+        const reviewsWithDetails = reviews.map((review, index) => ({
+            reviewID: review._id,
+            reviewUserID: review.reviewUserID,
+            userName: users[index]?.emri,
+            reviewProductID: review.reviewProductID,
+            productName: product.emri,
+            rating: review.rating,
+            koment: review.koment
+        }));
+
+        res.status(200).json(reviewsWithDetails);
     } catch (error) {
-        res.status(500).json({ error: "Failed to update review." });
+        res.status(500).json({ error: 'Failed to fetch reviews' });
     }
 });
 
-// Delete review by ID
-router.delete("/:reviewID", async (req, res) => {
+//get all reviews by a specific user
+router.get('/user/:userID', async (req, res) => {
+    const { userID } = req.params;
+
     try {
-        const review = await Review.findByPk(req.params.reviewID);
-        if (!review) {
-            return res.status(404).json({ error: "Review not found." });
+        const reviews = await Review.find({ reviewUserID: userID });
+
+        if (!reviews || reviews.length === 0) {
+            return res.status(404).json({ message: 'No reviews found for this user' });
         }
-        await review.destroy();
-        res.json({ message: "Review deleted successfully." });
+
+        const user = await User.findByPk(userID);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const productPromises = reviews.map((review) =>
+            Product.findByPk(review.reviewProductID)
+        );
+        const products = await Promise.all(productPromises);
+
+        const reviewsWithDetails = reviews.map((review, index) => ({
+            reviewID: review._id,
+            reviewUserID: review.reviewUserID,
+            userName: user.emri,
+            reviewProductID: review.reviewProductID,
+            productName: products[index]?.emri,
+            rating: review.rating,
+            koment: review.koment
+        }));
+
+        res.status(200).json(reviewsWithDetails);
     } catch (error) {
-        res.status(500).json({ error: "Failed to delete review." });
+        res.status(500).json({ error: 'Failed to fetch user reviews' });
+    }
+});
+
+//delete
+router.delete('/:reviewID', async (req, res) => {
+    const { reviewID } = req.params;
+
+    try {
+        const review = await Review.findByIdAndDelete(reviewID);
+
+        if (!review) {
+            return res.status(404).json({ message: 'Review not found' });
+        }
+
+        res.status(200).json({ message: 'Review deleted' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete review' });
     }
 });
 

@@ -1,80 +1,86 @@
-const express = require("express");
+const express = require('express');
+const Wishlist = require('../models/Wishlists');
+const { User, Product } = require('../models');
 const router = express.Router();
-const { Wishlist, User, Product } = require("../models");
 
-// Get all wishlist
-router.get("/", async (req, res) => {
-    try {
-        const wishlist = await Wishlist.findAll({ include: User, Product });
-        res.json(wishlist);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve wishlist." });
-    }
-});
-
-// Get wishlist by ID
-router.get("/:wishlistID", async (req, res) => {
-    try {
-        const wishlist = await Wishlist.findByPk(req.params.wishlistID, { include: User, Product });
-        if (!wishlist) {
-            return res.status(404).json({ error: "Wishlist not found." });
-        }
-        res.json(wishlist);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve wishlist." });
-    }
-});
-
-// Create new wishlist
+//create
 router.post("/", async (req, res) => {
     try {
-        const { wishlistUserID, wishlistProductID } = req.body;
-        const user = await User.findByPk(wishlistUserID);
+        const { userID, productID } = req.body;
+
+        const user = await User.findByPk(userID);
         if (!user) {
             return res.status(404).json({ error: "User not found." });
         }
-        const product = await Product.findByPk(wishlistProductID);
+
+        const product = await Product.findByPk(productID);
         if (!product) {
             return res.status(404).json({ error: "Product not found." });
         }
-        const newWishlist = await Wishlist.create({ wishlistUserID, wishlistProductID });
-        res.status(201).json(newWishlist);
+
+        const wishlist = new Wishlist({
+            userID,
+            productID
+        });
+
+        await wishlist.save();
+        res.status(201).json(wishlist);
     } catch (error) {
         res.status(500).json({ error: "Failed to create wishlist." });
     }
 });
 
-// Update wishlist by ID
-router.put("/:wishlistID", async (req, res) => {
+
+//get wishlist by userID
+router.get('/:userID', async (req, res) => {
     try {
-        const { wishlistUserID, wishlistProductID } = req.body;
-        const wishlist = await Wishlist.findByPk(req.params.wishlistID);
-        if (!wishlist) {
-            return res.status(404).json({ error: "Wishlist not found." });
+        const wishlist = await Wishlist.find({ userID: req.params.userID });
+
+        if (!wishlist || wishlist.length === 0) {
+            return res.status(404).json({ message: 'Wishlist not found' });
         }
-        const product = await Product.findByPk(wishlistProductID);
-        if (!product) {
-            return res.status(404).json({ error: "Product not found." });
+
+        const user = await User.findByPk(req.params.userID);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
         }
-        await wishlist.update({ wishlistUserID, wishlistProductID });
-        res.json(wishlist);
+
+        const productPromises = wishlist.map((item) =>
+            Product.findByPk(item.productID)
+        );
+        const products = await Promise.all(productPromises);
+
+        const wishlistWithDetails = wishlist.map((item, index) => ({
+            wishlistID: item._id,
+            userID: item.userID,
+            userEmri: user.emri,
+            productID: item.productID,
+            productEmri: products[index]?.emri,
+        }));
+
+        res.status(200).json(wishlistWithDetails);
     } catch (error) {
-        res.status(500).json({ error: "Failed to update wishlist." });
+        res.status(500).json({ error: 'Failed to fetch wishlist' });
     }
 });
 
-// Delete wishlist by ID
-router.delete("/:wishlistID", async (req, res) => {
+
+//delete
+router.delete('/:userID/:productID', async (req, res) => {
+    const { userID, productID } = req.params;
+
     try {
-        const wishlist = await Wishlist.findByPk(req.params.wishlistID);
-        if (!wishlist) {
-            return res.status(404).json({ error: "Wishlist not found." });
+        const result = await Wishlist.deleteOne({ userID, productID });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'Wishlist item not found' });
         }
-        await wishlist.destroy();
-        res.json({ message: "Wishlist deleted successfully." });
+
+        res.status(200).json({ message: 'Item removed from wishlist' });
     } catch (error) {
-        res.status(500).json({ error: "Failed to delete wishlist." });
+        res.status(500).json({ error: 'Failed to remove item from wishlist' });
     }
 });
+
 
 module.exports = router;

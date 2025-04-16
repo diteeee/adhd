@@ -39,6 +39,8 @@ Coded by www.creative-tim.com
 import Dashboard from "layouts/dashboard";
 import Orders from "layouts/orders";
 import OrderItems from "layouts/orderItems";
+import Payments from "layouts/payments";
+import Reviews from "layouts/reviews";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
@@ -70,6 +72,22 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/orderItems",
     component: <OrderItems />,
+  },
+  {
+    type: "collapse",
+    name: "Payments",
+    key: "payments",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/payments",
+    component: <Payments />,
+  },
+  {
+    type: "collapse",
+    name: "Reviews",
+    key: "reviews",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/reviews",
+    component: <Reviews />,
   },
   {
     type: "collapse",

@@ -66,21 +66,21 @@ router.get('/:userID', async (req, res) => {
 
 
 //delete
-router.delete('/:userID/:productID', async (req, res) => {
-    const { userID, productID } = req.params;
-
+router.delete('/:wishlistID', async (req, res) => {
+    const { wishlistID } = req.params;
+  
     try {
-        const result = await Wishlist.deleteOne({ userID, productID });
-
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ message: 'Wishlist item not found' });
-        }
-
-        res.status(200).json({ message: 'Item removed from wishlist' });
+      const result = await Wishlist.deleteOne({ _id: wishlistID });
+  
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ message: 'Wishlist item not found' });
+      }
+  
+      res.status(200).json({ message: 'Item removed from wishlist' });
     } catch (error) {
-        res.status(500).json({ error: 'Failed to remove item from wishlist' });
+      res.status(500).json({ error: 'Failed to remove item from wishlist' });
     }
-});
+  });  
 
 
 module.exports = router;

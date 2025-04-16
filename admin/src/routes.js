@@ -37,9 +37,11 @@ Coded by www.creative-tim.com
 
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
+import Categories from "layouts/categories";
 import Orders from "layouts/orders";
 import OrderItems from "layouts/orderItems";
 import Payments from "layouts/payments";
+import Wishlists from "layouts/wishlists";
 import Reviews from "layouts/reviews";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
@@ -56,6 +58,14 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
     component: <Dashboard />,
+  },
+  {
+    type: "collapse",
+    name: "Categories",
+    key: "categories",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/categories",
+    component: <Categories />,
   },
   {
     type: "collapse",
@@ -80,6 +90,14 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/payments",
     component: <Payments />,
+  },
+  {
+    type: "collapse",
+    name: "Wishlists",
+    key: "wishlists",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/wishlists",
+    component: <Wishlists />,
   },
   {
     type: "collapse",

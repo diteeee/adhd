@@ -27,6 +27,7 @@ function Orders() {
   const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [users, setUsers] = useState([]);
   const [dialogType, setDialogType] = useState(""); // "edit" or "add"
   const [orderData, setOrderData] = useState({
     orderID: "",
@@ -45,7 +46,6 @@ function Orders() {
           { Header: "Total Price", accessor: "totalPrice", align: "center" },
           { Header: "Status", accessor: "status", align: "center" },
           { Header: "User", accessor: "user", align: "center" },
-          { Header: "Created At", accessor: "createdAt", align: "center" },
           { Header: "Actions", accessor: "actions", align: "center" },
         ];
         setColumns(cols);
@@ -54,14 +54,13 @@ function Orders() {
           orderID: order.orderID,
           totalPrice: order.totalPrice,
           status: order.status,
-          createdAt: new Date(order.createdAt).toLocaleDateString(),
           user: `${order.User?.emri || "Unknown"} ${order.User?.mbiemri || ""}`,
           actions: (
             <div>
               <Button color="primary" onClick={() => handleEdit(order)}>
                 Edit
               </Button>
-              <Button color="primary" onClick={() => handleDelete(order.orderID)}>
+              <Button color="info" onClick={() => handleDelete(order.orderID)}>
                 Delete
               </Button>
             </div>
@@ -72,6 +71,17 @@ function Orders() {
       })
       .catch((error) => {
         console.error("Failed to fetch orders:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/users")
+      .then((response) => {
+        setUsers(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch users:", error);
       });
   }, []);
 
@@ -234,13 +244,25 @@ function Orders() {
           />
           <TextField
             fullWidth
-            label="User ID"
+            select
+            label="Select User"
             variant="outlined"
             value={orderData.orderUserID}
             onChange={(e) => setOrderData({ ...orderData, orderUserID: e.target.value })}
             margin="normal"
-          />
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value=""></option>
+            {users.map((user) => (
+              <option key={user.userID} value={user.userID}>
+                {user.emri} {user.mbiemri}
+              </option>
+            ))}
+          </TextField>
         </DialogContent>
+
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} color="info">
             Cancel

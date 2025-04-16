@@ -26,6 +26,8 @@ import DataTable from "examples/Tables/DataTable";
 function OrderItems() {
   const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState(""); // "edit" or "add"
   const [orderItemData, setOrderItemData] = useState({
@@ -37,8 +39,14 @@ function OrderItems() {
   });
 
   useEffect(() => {
+    fetchOrderItems();
+    fetchProducts();
+    fetchOrders();
+  }, []);
+
+  const fetchOrderItems = () => {
     axios
-      .get("http://localhost:3001/orderitems")
+      .get("http://localhost:3001/orderItems")
       .then((response) => {
         const orderItems = response.data;
         const cols = [
@@ -46,7 +54,7 @@ function OrderItems() {
           { Header: "Quantity", accessor: "sasia", align: "center" },
           { Header: "Price", accessor: "cmimi", align: "center" },
           { Header: "Order ID", accessor: "orderItemOrderID", align: "center" },
-          { Header: "Product ID", accessor: "orderItemProductID", align: "center" },
+          { Header: "Product Name", accessor: "orderItemProductID", align: "center" },
           { Header: "Actions", accessor: "actions", align: "center" },
         ];
         setColumns(cols);
@@ -54,9 +62,11 @@ function OrderItems() {
         const formattedRows = orderItems.map((orderItem) => ({
           orderItemID: orderItem.orderItemID,
           sasia: orderItem.sasia,
-          cmimi: orderItem.cmimi,
+          cmimi: `$${orderItem.cmimi}`,
           orderItemOrderID: orderItem.orderItemOrderID,
-          orderItemProductID: orderItem.orderItemProductID,
+          orderItemProductID:
+            products.find((p) => p.productID === orderItem.orderItemProductID)?.emri ||
+            orderItem.orderItemProductID,
           actions: (
             <div>
               <Button color="primary" onClick={() => handleEdit(orderItem)}>
@@ -74,15 +84,27 @@ function OrderItems() {
       .catch((error) => {
         console.error("Failed to fetch order items:", error);
       });
-  }, []);
+  };
 
-  // Handle Delete
+  const fetchProducts = () => {
+    axios
+      .get("http://localhost:3001/products")
+      .then((response) => setProducts(response.data))
+      .catch((error) => console.error("Failed to fetch products:", error));
+  };
+
+  const fetchOrders = () => {
+    axios
+      .get("http://localhost:3001/orders")
+      .then((response) => setOrders(response.data))
+      .catch((error) => console.error("Failed to fetch orders:", error));
+  };
+
   const handleDelete = (orderItemID) => {
     axios
-      .delete(`http://localhost:3001/orderitems/${orderItemID}`)
+      .delete(`http://localhost:3001/orderItems/${orderItemID}`)
       .then(() => {
         alert("Order item deleted successfully.");
-        // Re-fetch the order items after deletion
         fetchOrderItems();
       })
       .catch((error) => {
@@ -90,7 +112,6 @@ function OrderItems() {
       });
   };
 
-  // Handle Edit
   const handleEdit = (orderItem) => {
     setOrderItemData({
       orderItemID: orderItem.orderItemID,
@@ -103,7 +124,6 @@ function OrderItems() {
     setOpenDialog(true);
   };
 
-  // Handle Add
   const handleAdd = () => {
     setOrderItemData({
       orderItemID: "",
@@ -116,13 +136,12 @@ function OrderItems() {
     setOpenDialog(true);
   };
 
-  // Handle Dialog Save
   const handleSave = () => {
     const { orderItemID, sasia, cmimi, orderItemOrderID, orderItemProductID } = orderItemData;
 
     if (dialogType === "edit") {
       axios
-        .put(`http://localhost:3001/orderitems/${orderItemID}`, {
+        .put(`http://localhost:3001/orderItems/${orderItemID}`, {
           sasia,
           cmimi,
           orderItemOrderID,
@@ -136,9 +155,9 @@ function OrderItems() {
         .catch((error) => {
           console.error("Failed to update order item:", error);
         });
-    } else if (dialogType === "add") {
+    } else {
       axios
-        .post("http://localhost:3001/orderitems", {
+        .post("http://localhost:3001/orderItems", {
           sasia,
           cmimi,
           orderItemOrderID,
@@ -153,37 +172,6 @@ function OrderItems() {
           console.error("Failed to create order item:", error);
         });
     }
-  };
-
-  // Fetch Order Items
-  const fetchOrderItems = () => {
-    axios
-      .get("http://localhost:3001/orderitems")
-      .then((response) => {
-        const orderItems = response.data;
-        const formattedRows = orderItems.map((orderItem) => ({
-          orderItemID: orderItem.orderItemID,
-          sasia: orderItem.sasia,
-          cmimi: orderItem.cmimi,
-          orderItemOrderID: orderItem.orderItemOrderID,
-          orderItemProductID: orderItem.orderItemProductID,
-          actions: (
-            <div>
-              <Button color="primary" onClick={() => handleEdit(orderItem)}>
-                Edit
-              </Button>
-              <Button color="error" onClick={() => handleDelete(orderItem.orderItemID)}>
-                Delete
-              </Button>
-            </div>
-          ),
-        }));
-
-        setRows(formattedRows);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch order items:", error);
-      });
   };
 
   return (
@@ -230,7 +218,7 @@ function OrderItems() {
       </MDBox>
       <Footer />
 
-      {/* Edit / Add Order Item Dialog */}
+      {/* Dialog for Add/Edit */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Order Item" : "Add Order Item"}</DialogTitle>
         <DialogContent>
@@ -252,24 +240,42 @@ function OrderItems() {
           />
           <TextField
             fullWidth
-            label="Order ID"
+            select
+            label="Order"
             variant="outlined"
             value={orderItemData.orderItemOrderID}
             onChange={(e) =>
               setOrderItemData({ ...orderItemData, orderItemOrderID: e.target.value })
             }
             margin="normal"
-          />
+            SelectProps={{ native: true }}
+          >
+            <option value=""></option>
+            {orders.map((order) => (
+              <option key={order.orderID} value={order.orderID}>
+                {order.orderID}
+              </option>
+            ))}
+          </TextField>
           <TextField
             fullWidth
-            label="Product ID"
+            select
+            label="Product"
             variant="outlined"
             value={orderItemData.orderItemProductID}
             onChange={(e) =>
               setOrderItemData({ ...orderItemData, orderItemProductID: e.target.value })
             }
             margin="normal"
-          />
+            SelectProps={{ native: true }}
+          >
+            <option value=""></option>
+            {products.map((product) => (
+              <option key={product.productID} value={product.productID}>
+                {product.emri}
+              </option>
+            ))}
+          </TextField>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} color="info">

@@ -2,9 +2,14 @@ const express = require("express");
 const app = express();
 const cors = require('cors');
 const mongoose = require("mongoose");
+const path = require('path');
 
 app.use(express.json());
 app.use(cors());
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// routers
 
 const userRouter = require('./routes/Users');
 app.use("/users", userRouter);

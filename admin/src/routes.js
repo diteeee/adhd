@@ -37,7 +37,10 @@ Coded by www.creative-tim.com
 
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
+import Users from "layouts/users";
+import Addresss from "layouts/addresss";
 import Categories from "layouts/categories";
+import Products from "layouts/products";
 import Orders from "layouts/orders";
 import OrderItems from "layouts/orderItems";
 import Payments from "layouts/payments";
@@ -61,11 +64,35 @@ const routes = [
   },
   {
     type: "collapse",
+    name: "Users",
+    key: "users",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/users",
+    component: <Users />,
+  },
+  {
+    type: "collapse",
+    name: "Addresses",
+    key: "addresses",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/addresses",
+    component: <Addresss />,
+  },
+  {
+    type: "collapse",
     name: "Categories",
     key: "categories",
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/categories",
     component: <Categories />,
+  },
+  {
+    type: "collapse",
+    name: "Products",
+    key: "products",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/products",
+    component: <Products />,
   },
   {
     type: "collapse",

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const app = express();
 const cors = require('cors');
@@ -6,6 +7,7 @@ const path = require('path');
 
 app.use(express.json());
 app.use(cors());
+const jwt = require("jsonwebtoken");
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -38,6 +40,9 @@ app.use("/reviews", reviewRouter);
 const wishlistRouter = require('./routes/Wishlists');
 app.use("/wishlists", wishlistRouter);
 
+const signInRouter = require('./routes/SignIn');
+app.use("/signin", signInRouter);
+
 
 mongoose.connect("mongodb://127.0.0.1:27017/adhd", {
     useNewUrlParser: true,
@@ -47,6 +52,7 @@ mongoose.connect("mongodb://127.0.0.1:27017/adhd", {
     console.log("Connected to adhd");
     app.listen(3001, () => {
         console.log("Server running on port 3001");
+        console.log('JWT_SECRET:', process.env.JWT_SECRET);
     });
 })
 .catch((err) => {

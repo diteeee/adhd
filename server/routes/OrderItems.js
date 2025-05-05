@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { OrderItem, Order, Product } = require("../models");
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/permission'); 
 
 // Get all orderItem
 router.get("/", async (req, res) => {
@@ -45,7 +47,7 @@ router.post("/", async (req, res) => {
 });
 
 // Update orderItem by ID
-router.put("/:orderItemID", async (req, res) => {
+router.put("/:orderItemID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { sasia, cmimi, orderItemOrderID, orderItemProductID } = req.body;
         const orderItem = await OrderItem.findByPk(req.params.orderItemID);
@@ -64,7 +66,7 @@ router.put("/:orderItemID", async (req, res) => {
 });
 
 // Delete orderItem by ID
-router.delete("/:orderItemID", async (req, res) => {
+router.delete("/:orderItemID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const orderItem = await OrderItem.findByPk(req.params.orderItemID);
         if (!orderItem) {

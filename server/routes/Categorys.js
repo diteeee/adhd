@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { Category } = require("../models");
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/permission'); 
 
 // Get all categorys
 router.get("/", async (req, res) => {
@@ -26,7 +28,7 @@ router.get("/:categoryID", async (req, res) => {
 });
 
 // Create new category
-router.post("/", async (req, res) => {
+router.post("/", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { emri } = req.body;
         const newCategory = await Category.create({ emri });
@@ -37,7 +39,7 @@ router.post("/", async (req, res) => {
 });
 
 // Update category by ID
-router.put("/:categoryID", async (req, res) => {
+router.put("/:categoryID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { emri } = req.body;
         const category = await Category.findByPk(req.params.categoryID);
@@ -52,7 +54,7 @@ router.put("/:categoryID", async (req, res) => {
 });
 
 // Delete category by ID
-router.delete("/:categoryID", async (req, res) => {
+router.delete("/:categoryID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const category = await Category.findByPk(req.params.categoryID);
         if (!category) {

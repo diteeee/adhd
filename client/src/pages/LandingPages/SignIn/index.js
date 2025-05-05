@@ -61,11 +61,15 @@ function SignInBasic() {
           nrTel: decodedToken.nrTel,
         };
 
-        setUser(userData); // Update the user context immediately
+        setUser(userData);
 
-        console.log("User data set:", userData); // Log to console to verify
+        console.log("User data set:", userData);
 
-        navigate("/dashboard");
+        if (decodedToken.role === "admin") {
+          window.location.href = `http://localhost:3006/dashboard?token=${token}`;
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         setError(response.data.message || "Sign-in failed.");
       }

@@ -2,6 +2,8 @@ const express = require('express');
 const { User, Product } = require('../models'); // Sequelize models for User and Product
 const Review = require('../models/Reviews'); // MongoDB Review model
 const router = express.Router();
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/permission'); 
 
 //create
 router.post('/', async (req, res) => {
@@ -70,7 +72,7 @@ router.get('/product/:productID', async (req, res) => {
 });
 
 //get all reviews by a specific user
-router.get('/user/:userID', async (req, res) => {
+router.get('/user/:userID', auth, checkRole(["admin"]), async (req, res) => {
     const { userID } = req.params;
 
     try {
@@ -107,7 +109,7 @@ router.get('/user/:userID', async (req, res) => {
 });
 
 //delete
-router.delete('/:reviewID', async (req, res) => {
+router.delete('/:reviewID', auth, checkRole(["admin"]), async (req, res) => {
     const { reviewID } = req.params;
 
     try {

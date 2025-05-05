@@ -14,7 +14,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 
 // react-router components
 import { Link } from "react-router-dom";
@@ -42,6 +42,8 @@ import DefaultNavbarMobile from "examples/Navbars/DefaultNavbar/DefaultNavbarMob
 
 // Material Kit 2 React base styles
 import breakpoints from "assets/theme/base/breakpoints";
+import { useUser } from "context/UserContext"; // Ensure the path is correct
+import { cloneDeep } from "lodash";
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
   const [dropdown, setDropdown] = useState("");
@@ -53,6 +55,29 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const [arrowRef, setArrowRef] = useState(null);
   const [mobileNavbar, setMobileNavbar] = useState(false);
   const [mobileView, setMobileView] = useState(false);
+  const [formattedRoutes, setFormattedRoutes] = useState(routes);
+
+  const { user } = useUser();
+
+  useEffect(() => {
+    const newRoutes = cloneDeep(routes);
+    if (user === null || !user) {
+      newRoutes[0].collapse[1].collapse = newRoutes[0].collapse[1].collapse.filter(
+        (item) => item.name !== "log out"
+      );
+    } else {
+      newRoutes[0].collapse[1].collapse = newRoutes[0].collapse[1].collapse.filter(
+        (item) => item.name !== "sign in"
+      );
+      newRoutes[0].collapse[1].collapse = newRoutes[0].collapse[1].collapse.filter(
+        (item) => item.name !== "sign up"
+      );
+    }
+    console.log("=======================");
+    console.log(routes);
+    console.log("User12344:", user);
+    setFormattedRoutes(newRoutes);
+  }, [user]);
 
   const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
 
@@ -81,7 +106,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
     return () => window.removeEventListener("resize", displayMobileNavbar);
   }, []);
 
-  const renderNavbarItems = routes.map(({ name, icon, href, route, collapse }) => (
+  const renderNavbarItems = formattedRoutes.map(({ name, icon, href, route, collapse }) => (
     <DefaultNavbarDropdown
       key={name}
       name={name}
@@ -102,7 +127,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   ));
 
   // Render the routes on the dropdown menu
-  const renderRoutes = routes.map(({ name, collapse, columns, rowsPerColumn }) => {
+  const renderRoutes = formattedRoutes.map(({ name, collapse, columns, rowsPerColumn }) => {
     let template;
 
     // Render the dropdown menu that should be display as columns
@@ -279,7 +304,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
     return template;
   });
 
-  // Routes dropdown menu
+  // formattedRoutes dropdown menu
   const dropdownMenu = (
     <Popper
       anchorEl={dropdown}
@@ -329,7 +354,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   );
 
   // Render routes that are nested inside the dropdown menu routes
-  const renderNestedRoutes = routes.map(({ collapse, columns }) =>
+  const renderNestedRoutes = formattedRoutes.map(({ collapse, columns }) =>
     collapse && !columns
       ? collapse.map(({ name: parentName, collapse: nestedCollapse }) => {
           let template;
@@ -540,7 +565,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
           borderRadius="xl"
           px={transparent ? 2 : 0}
         >
-          {mobileView && <DefaultNavbarMobile routes={routes} open={mobileNavbar} />}
+          {mobileView && <DefaultNavbarMobile routes={formattedRoutes} open={mobileNavbar} />}
         </MKBox>
       </MKBox>
       {dropdownMenu}
@@ -551,7 +576,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
 
 // Setting default values for the props of DefaultNavbar
 DefaultNavbar.defaultProps = {
-  brand: "Material Kit 2",
+  brand: "Celestia",
   transparent: false,
   light: false,
   action: false,

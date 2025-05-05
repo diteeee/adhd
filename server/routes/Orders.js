@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { Order, User } = require("../models");
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/permission'); 
 
 // Get all order
 router.get("/", async (req, res) => {
@@ -41,7 +43,7 @@ router.post("/", async (req, res) => {
 });
 
 // Update order by ID
-router.put("/:orderID", async (req, res) => {
+router.put("/:orderID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { totalPrice, status, orderUserID } = req.body;
         const order = await Order.findByPk(req.params.orderID);
@@ -56,7 +58,7 @@ router.put("/:orderID", async (req, res) => {
 });
 
 // Delete order by ID
-router.delete("/:orderID", async (req, res) => {
+router.delete("/:orderID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const order = await Order.findByPk(req.params.orderID);
         if (!order) {

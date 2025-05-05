@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { User } = require("../models");
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/permission'); 
 
 // get all users
 router.get("/", async (req, res) => {
@@ -52,7 +54,7 @@ router.put("/:userID", async (req, res) => {
 });
 
 // Delete user by ID
-router.delete("/:userID", async (req, res) => {
+router.delete("/:userID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const user = await User.findByPk(req.params.userID);
         if (!user) {

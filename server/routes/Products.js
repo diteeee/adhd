@@ -3,6 +3,8 @@ const multer = require('multer');
 const path = require('path');
 const router = express.Router();
 const { Product, Category } = require("../models");
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/permission'); 
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -39,7 +41,7 @@ router.get("/:productID", async (req, res) => {
 });
 
 // Create new product
-router.post("/", upload.single('img'), async (req, res) => {
+router.post("/", upload.single('img'), auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { emri, pershkrimi, firma, cmimi, productCategoryID } = req.body;
         const imageURL = req.file ? req.file.path : '';
@@ -56,7 +58,7 @@ router.post("/", upload.single('img'), async (req, res) => {
 });
 
 // Update product by ID
-router.put("/:productID", upload.single('img'), async (req, res) => {
+router.put("/:productID", upload.single('img'), auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { emri, pershkrimi, firma, cmimi, productCategoryID } = req.body;
         const product = await Product.findByPk(req.params.productID);
@@ -74,7 +76,7 @@ router.put("/:productID", upload.single('img'), async (req, res) => {
 });
 
 // Delete product by ID
-router.delete("/:productID", async (req, res) => {
+router.delete("/:productID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.productID);
         if (!product) {

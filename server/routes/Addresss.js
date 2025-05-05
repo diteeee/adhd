@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { Address, User } = require("../models");
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/permission');
 
 // Get all address
 router.get("/", async (req, res) => {
@@ -26,7 +28,7 @@ router.get("/:addressID", async (req, res) => {
 });
 
 // Create new address
-router.post("/", async (req, res) => {
+router.post("/", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { rruga, qyteti, zipCode, shteti, addressUserID } = req.body;
         const user = await User.findByPk(addressUserID);
@@ -41,7 +43,7 @@ router.post("/", async (req, res) => {
 });
 
 // Update address by ID
-router.put("/:addressID", async (req, res) => {
+router.put("/:addressID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { rruga, qyteti, zipCode, shteti, addressUserID } = req.body;
         const address = await Address.findByPk(req.params.addressID);
@@ -56,7 +58,7 @@ router.put("/:addressID", async (req, res) => {
 });
 
 // Delete address by ID
-router.delete("/:addressID", async (req, res) => {
+router.delete("/:addressID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const address = await Address.findByPk(req.params.addressID);
         if (!address) {

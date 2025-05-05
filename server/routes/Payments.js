@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { Payment, Order } = require("../models");
+const auth = require('../middleware/auth');
+const checkRole = require('../middleware/permission'); 
 
 // Get all payment
 router.get("/", async (req, res) => {
@@ -41,7 +43,7 @@ router.post("/", async (req, res) => {
 });
 
 // Update payment by ID
-router.put("/:paymentID", async (req, res) => {
+router.put("/:paymentID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { metoda, status, data, paymentOrderID } = req.body;
         const payment = await Payment.findByPk(req.params.paymentID);
@@ -56,7 +58,7 @@ router.put("/:paymentID", async (req, res) => {
 });
 
 // Delete payment by ID
-router.delete("/:paymentID", async (req, res) => {
+router.delete("/:paymentID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const payment = await Payment.findByPk(req.params.paymentID);
         if (!payment) {

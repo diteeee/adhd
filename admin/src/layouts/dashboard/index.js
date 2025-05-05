@@ -1,18 +1,4 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
+import React, { useEffect } from "react";
 // @mui material components
 import Grid from "@mui/material/Grid";
 
@@ -34,9 +20,40 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+import { jwtDecode } from "jwt-decode";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
+  const queryParams = new URLSearchParams(window.location.search);
+  const token = queryParams.get("token") || localStorage.getItem("token");
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("token", token);
+      console.log("Token saved to localStorage:", token);
+
+      try {
+        const decodedToken = jwtDecode(token);
+        console.log("Decoded Token:", decodedToken);
+
+        const userRoleFromToken = decodedToken.role || "guest";
+        console.log("User Role from Token:", userRoleFromToken);
+
+        localStorage.setItem("role", userRoleFromToken);
+
+        if (userRoleFromToken !== "admin") {
+          console.warn("Unauthorized access. Redirecting to presentation page.");
+          window.location.href = "http://localhost:3000/presentation";
+        }
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+      }
+    } else {
+      localStorage.removeItem("token");
+      console.warn("Unauthorized access. Redirecting to presentation page.");
+      window.location.href = "http://localhost:3000/presentation";
+    }
+  }, [token]);
 
   return (
     <DashboardLayout>
@@ -53,7 +70,7 @@ function Dashboard() {
                 percentage={{
                   color: "success",
                   amount: "+55%",
-                  label: "than lask week",
+                  label: "than last week",
                 }}
               />
             </MDBox>

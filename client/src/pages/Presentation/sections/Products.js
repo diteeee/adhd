@@ -170,14 +170,24 @@ const Products = () => {
       <MKBox sx={{ paddingTop: "100px" }}>
         <Container>
           {user?.role === "admin" && (
-            <Button variant="contained" color="primary" onClick={handleAddProduct} sx={{ mb: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleAddProduct}
+              sx={{ mb: 2, color: "#fff !important" }}
+            >
               Add Product
             </Button>
           )}
 
           <FormControl fullWidth margin="normal">
             <InputLabel>Category</InputLabel>
-            <Select value={selectedCategory} onChange={handleCategoryChange} label="Category">
+            <Select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              label="Category"
+              sx={{ height: 45, fontSize: "1rem" }} // 👈 Add this line
+            >
               <MenuItem value="">All Categories</MenuItem>
               {categories.map((category) => (
                 <MenuItem key={category.categoryID} value={category.categoryID}>

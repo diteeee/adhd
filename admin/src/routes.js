@@ -45,6 +45,7 @@ import Orders from "layouts/orders";
 import OrderItems from "layouts/orderItems";
 import Payments from "layouts/payments";
 import Wishlists from "layouts/wishlists";
+import Carts from "layouts/carts";
 import Reviews from "layouts/reviews";
 import Logout from "layouts/logout";
 
@@ -123,6 +124,14 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/wishlists",
     component: <Wishlists />,
+  },
+  {
+    type: "collapse",
+    name: "Carts",
+    key: "carts",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/carts",
+    component: <Carts />,
   },
   {
     type: "collapse",

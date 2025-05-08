@@ -11,8 +11,9 @@ const jwt = require("jsonwebtoken");
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// routers
+const db = require("./models");
 
+// routers
 const userRouter = require('./routes/Users');
 app.use("/users", userRouter);
 
@@ -40,6 +41,9 @@ app.use("/reviews", reviewRouter);
 const wishlistRouter = require('./routes/Wishlists');
 app.use("/wishlists", wishlistRouter);
 
+const cartRouter = require('./routes/Carts');
+app.use("/carts", cartRouter);
+
 const signInRouter = require('./routes/SignIn');
 app.use("/signin", signInRouter);
 
@@ -49,10 +53,11 @@ mongoose.connect("mongodb://127.0.0.1:27017/adhd", {
     useUnifiedTopology: true,
 })
 .then(() => {
-    console.log("Connected to adhd");
-    app.listen(3001, () => {
-        console.log("Server running on port 3001");
+    db.sequelize.sync().then(() => {
+      app.listen(3001, () => {
+        console.log("Server on 3001");
         console.log('JWT_SECRET:', process.env.JWT_SECRET);
+      });
     });
 })
 .catch((err) => {

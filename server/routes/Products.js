@@ -18,14 +18,32 @@ const upload = multer({
 });
 
 // Get all product
+// Get all products
 router.get("/", async (req, res) => {
     try {
-        const product = await Product.findAll({ include: Category });
-        res.json(product);
+      const products = await Product.findAll({ include: Category });
+      res.json(products);
     } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve product." });
+      res.status(500).json({ error: "Failed to retrieve products." });
     }
-});
+  });
+  
+  // Get products by category ID
+  router.get("/category/:categoryID", async (req, res) => {
+    try {
+      const { categoryID } = req.params;
+  
+      const products = await Product.findAll({
+        where: { productCategoryID: categoryID },
+        include: Category,
+      });
+  
+      res.json(products);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to retrieve products by category." });
+    }
+  });
+  
 
 // Get product by ID
 router.get("/:productID", async (req, res) => {

@@ -45,6 +45,7 @@ import ContactUs from "layouts/pages/landing-pages/contact-us";
 import Author from "layouts/pages/landing-pages/author";
 import SignIn from "layouts/pages/authentication/sign-in";
 import SignOutPage from "pages/LandingPages/SignOut";
+import Products from "pages/Presentation/sections/Products";
 
 const routes = [
   {
@@ -101,7 +102,14 @@ const routes = [
   {
     name: "sections",
     icon: <Icon>view_day</Icon>,
-    collapse: [],
+    collapse: [
+      {
+        name: "products",
+        route: "/sections/products",
+        component: <Products />,
+        key: "products",
+      },
+    ],
   },
 ];
 

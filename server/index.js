@@ -26,6 +26,9 @@ app.use("/categorys", categoryRouter);
 const productRouter = require('./routes/Products');
 app.use("/products", productRouter);
 
+const productVariantRouter = require('./routes/ProductVariants');
+app.use("/productVariants", productVariantRouter);
+
 const orderRouter = require('./routes/Orders');
 app.use("/orders", orderRouter);
 

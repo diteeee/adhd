@@ -45,6 +45,7 @@ import ProductVariants from "layouts/productVariants";
 import Orders from "layouts/orders";
 import OrderItems from "layouts/orderItems";
 import Payments from "layouts/payments";
+import Coupons from "layouts/coupons";
 import Wishlists from "layouts/wishlists";
 import Carts from "layouts/carts";
 import Reviews from "layouts/reviews";
@@ -125,6 +126,14 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/payments",
     component: <Payments />,
+  },
+  {
+    type: "collapse",
+    name: "Coupons",
+    key: "coupons",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/coupons",
+    component: <Coupons />,
   },
   {
     type: "collapse",

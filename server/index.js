@@ -38,6 +38,9 @@ app.use("/orderItems", orderItemRouter);
 const paymentRouter = require('./routes/Payments');
 app.use("/payments", paymentRouter);
 
+const returnRouter = require('./routes/Returns');
+app.use("/returns", returnRouter);
+
 const couponRouter = require('./routes/Coupons');
 app.use("/coupons", couponRouter);
 

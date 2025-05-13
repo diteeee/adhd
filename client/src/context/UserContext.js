@@ -14,7 +14,7 @@ export const UserProvider = ({ children }) => {
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
-        const { role, email, emri, mbiemri, nrTel } = decodedToken;
+        const { role, email, emri, mbiemri, nrTel, userID } = decodedToken;
 
         // Check if the token is expired
         const currentTime = Date.now() / 1000;
@@ -23,7 +23,7 @@ export const UserProvider = ({ children }) => {
           setUser(null);
         } else {
           // Combine emri and mbiemri to form the full name
-          setUser({ role, email, emri, mbiemri, nrTel });
+          setUser({ role, email, emri, mbiemri, nrTel, userID });
         }
       } catch (error) {
         localStorage.removeItem("token");

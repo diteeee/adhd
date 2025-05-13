@@ -4,6 +4,8 @@ const app = express();
 const cors = require('cors');
 const mongoose = require("mongoose");
 const path = require('path');
+const http = require("http");
+const { Server } = require("socket.io");
 
 app.use(express.json());
 app.use(cors());
@@ -12,6 +14,32 @@ const jwt = require("jsonwebtoken");
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const db = require("./models");
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:3000",
+        methods: ["GET", "POST"]
+    }
+});
+
+io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
+
+    socket.on("joinRoom", (userId) => {
+        if (userId) {
+            console.log(`User with ID ${userId} joined the room.`);
+            socket.join(userId);
+        } else {
+            console.log("User ID is invalid or not provided.");
+        }
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+    });
+});
 
 // routers
 const userRouter = require('./routes/Users');
@@ -53,22 +81,25 @@ app.use("/wishlists", wishlistRouter);
 const cartRouter = require('./routes/Carts');
 app.use("/carts", cartRouter);
 
+const notificationRouter = require('./routes/Notifications')(io);
+app.use("/notifications", notificationRouter);
+
 const signInRouter = require('./routes/SignIn');
 app.use("/signin", signInRouter);
 
-
+// mongoDB connection
 mongoose.connect("mongodb://127.0.0.1:27017/adhd", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-.then(() => {
-    db.sequelize.sync().then(() => {
-      app.listen(3001, () => {
-        console.log("Server on 3001");
-        console.log('JWT_SECRET:', process.env.JWT_SECRET);
-      });
+    .then(() => {
+        db.sequelize.sync().then(() => {
+            server.listen(3001, () => {
+                console.log("Server on 3001");
+                console.log('JWT_SECRET:', process.env.JWT_SECRET);
+            });
+        });
+    })
+    .catch((err) => {
+        console.error("MongoDB connection error:", err);
     });
-})
-.catch((err) => {
-    console.error("MongoDB connection error:", err);
-});

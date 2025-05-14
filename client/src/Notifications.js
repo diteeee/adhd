@@ -3,12 +3,14 @@ import PropTypes from "prop-types";
 import { Alert, Snackbar } from "@mui/material";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3001");
-
 const Notifications = ({ userId }) => {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
+    if (!userId) return;
+
+    const socket = io("http://localhost:3001");
+
     console.log("Joining room with userId:", userId);
     socket.emit("joinRoom", userId);
 

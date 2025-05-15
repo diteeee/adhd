@@ -3,8 +3,10 @@ module.exports = (io) => {
   const { User } = require('../models');
   const Notification = require('../models/Notifications');
   const router = express.Router();
+  const auth = require('../middleware/auth');
+  const checkRole = require('../middleware/permission'); 
 
-router.post('/', async (req, res) => {
+router.post('/', auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { notificationUserID, mesazhi } = req.body;
         const user = await User.findByPk(notificationUserID);

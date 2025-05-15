@@ -37,6 +37,7 @@ function Addresss() {
     addressUserID: "",
   });
   const [users, setUsers] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchAddresss();
@@ -44,8 +45,11 @@ function Addresss() {
   }, []);
 
   const fetchAddresss = () => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:3001/addresss")
+      .get("http://localhost:3001/addresss", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => {
         const addresss = res.data;
         const cols = [
@@ -82,8 +86,11 @@ function Addresss() {
   };
 
   const fetchUsers = () => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:3001/users")
+      .get("http://localhost:3001/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => setUsers(res.data))
       .catch((err) => console.error("Failed to fetch users:", err));
   };
@@ -108,8 +115,11 @@ function Addresss() {
   };
 
   const handleDelete = (addressID) => {
+    const token = localStorage.getItem("token");
     axios
-      .delete(`http://localhost:3001/addresss/${addressID}`)
+      .delete(`http://localhost:3001/addresss/${addressID}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then(() => {
         alert("Address deleted.");
         fetchAddresss();
@@ -118,6 +128,7 @@ function Addresss() {
   };
 
   const handleSave = () => {
+    const token = localStorage.getItem("token");
     const { addressID, ...payload } = addressData;
     const method = dialogType === "edit" ? "put" : "post";
     const url =
@@ -125,7 +136,9 @@ function Addresss() {
         ? `http://localhost:3001/addresss/${addressID}`
         : "http://localhost:3001/addresss";
 
-    axios[method](url, payload)
+    axios[method](url, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then(() => {
         alert(dialogType === "edit" ? "Address updated." : "Address added.");
         setOpenDialog(false);
@@ -178,7 +191,6 @@ function Addresss() {
       </MDBox>
       <Footer />
 
-      {/* Dialog for Add/Edit */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Address" : "Add Address"}</DialogTitle>
         <DialogContent>
@@ -211,7 +223,6 @@ function Addresss() {
             margin="normal"
           />
 
-          {/* User Select */}
           <TextField
             fullWidth
             select

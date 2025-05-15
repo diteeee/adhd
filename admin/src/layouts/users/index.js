@@ -7,11 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
 } from "@mui/material";
+
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 
@@ -35,8 +32,16 @@ function Users() {
     nrTel: "",
     email: "",
     password: "",
-    role: "User", // Default role
+    role: "User",
   });
+
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -44,7 +49,7 @@ function Users() {
 
   const fetchUsers = () => {
     axios
-      .get("http://localhost:3001/users")
+      .get("http://localhost:3001/users", axiosConfig)
       .then((res) => {
         const users = res.data;
         const cols = [
@@ -77,7 +82,11 @@ function Users() {
 
         setRows(formattedRows);
       })
-      .catch((err) => console.error("Failed to fetch users:", err));
+      .catch((err) => {
+        console.error("Failed to fetch users:", err);
+        alert("Authentication failed. Please log in again.");
+        window.location.href = "/login";
+      });
   };
 
   const handleEdit = (user) => {
@@ -94,7 +103,7 @@ function Users() {
       nrTel: "",
       email: "",
       password: "",
-      role: "User", // Default role for adding a new user
+      role: "User",
     });
     setDialogType("add");
     setOpenDialog(true);
@@ -102,7 +111,7 @@ function Users() {
 
   const handleDelete = (userID) => {
     axios
-      .delete(`http://localhost:3001/users/${userID}`)
+      .delete(`http://localhost:3001/users/${userID}`, axiosConfig)
       .then(() => {
         alert("User deleted.");
         fetchUsers();
@@ -118,7 +127,7 @@ function Users() {
         ? `http://localhost:3001/users/${userID}`
         : "http://localhost:3001/users";
 
-    axios[method](url, payload)
+    axios[method](url, payload, axiosConfig)
       .then(() => {
         alert(dialogType === "edit" ? "User updated." : "User added.");
         setOpenDialog(false);
@@ -171,7 +180,6 @@ function Users() {
       </MDBox>
       <Footer />
 
-      {/* Dialog for Add/Edit */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit User" : "Add User"}</DialogTitle>
         <DialogContent>
@@ -211,8 +219,6 @@ function Users() {
             onChange={(e) => setUserData({ ...userData, password: e.target.value })}
             margin="normal"
           />
-
-          {/* Role Select */}
           <TextField
             fullWidth
             select

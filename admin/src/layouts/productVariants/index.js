@@ -7,7 +7,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  InputLabel,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -31,9 +30,20 @@ function ProductVariants() {
     productVariantProductID: "",
   });
 
-  useEffect(() => {
-    fetchProducts();
+  const token = localStorage.getItem("token");
 
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  useEffect(() => {
+    if (!token) {
+      alert("Unauthorized access. Please log in.");
+      return;
+    }
+    fetchProducts();
     setColumns([
       { Header: "Product Variant ID", accessor: "productVariantID" },
       { Header: "Shade", accessor: "shade" },
@@ -42,54 +52,74 @@ function ProductVariants() {
       { Header: "Product", accessor: "productName" },
       { Header: "Actions", accessor: "actions" },
     ]);
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (selectedProduct) fetchProductVariants();
   }, [selectedProduct]);
 
   const fetchProducts = () => {
-    axios.get("http://localhost:3001/products").then((res) => {
-      setProducts(res.data);
-    });
+    axios
+      .get("http://localhost:3001/products", axiosConfig)
+      .then((res) => {
+        setProducts(res.data);
+      })
+      .catch((err) => {
+        handleAuthError(err);
+      });
   };
 
   const fetchProductVariants = () => {
-    axios.get("http://localhost:3001/productVariants").then((res) => {
-      const filtered = res.data.filter(
-        (productVariant) => productVariant.productVariantProductID == selectedProduct
-      );
+    axios
+      .get("http://localhost:3001/productVariants", axiosConfig)
+      .then((res) => {
+        const filtered = res.data.filter(
+          (productVariant) => productVariant.productVariantProductID == selectedProduct
+        );
 
-      const formatted = filtered.map((p) => ({
-        productVariantID: p.productVariantID,
-        shade: p.shade,
-        numri: p.numri,
-        inStock: p.inStock,
-        productName: p.Product?.emri || "",
-        actions: (
-          <div style={{ display: "flex", gap: 10 }}>
-            <Button color="primary" onClick={() => handleEdit(p)} size="small">
-              Edit
-            </Button>
-            <Button color="error" onClick={() => handleDelete(p.productVariantID)} size="small">
-              Delete
-            </Button>
-          </div>
-        ),
-      }));
+        const formatted = filtered.map((p) => ({
+          productVariantID: p.productVariantID,
+          shade: p.shade,
+          numri: p.numri,
+          inStock: p.inStock,
+          productName: p.Product?.emri || "",
+          actions: (
+            <div style={{ display: "flex", gap: 10 }}>
+              <Button color="primary" onClick={() => handleEdit(p)} size="small">
+                Edit
+              </Button>
+              <Button color="error" onClick={() => handleDelete(p.productVariantID)} size="small">
+                Delete
+              </Button>
+            </div>
+          ),
+        }));
 
-      setRows(formatted);
-    });
+        setRows(formatted);
+      })
+      .catch((err) => {
+        handleAuthError(err);
+      });
+  };
+
+  const handleAuthError = (error) => {
+    if (error.response?.status === 401) {
+      alert("Unauthorized. Please log in again.");
+    } else {
+      console.error("An error occurred:", error);
+    }
   };
 
   const handleDelete = (productVariantID) => {
     axios
-      .delete(`http://localhost:3001/productVariants/${productVariantID}`)
+      .delete(`http://localhost:3001/productVariants/${productVariantID}`, axiosConfig)
       .then(() => {
         alert("Product Variant deleted.");
         fetchProductVariants();
       })
-      .catch((err) => console.error("Delete failed:", err));
+      .catch((err) => {
+        handleAuthError(err);
+      });
   };
 
   const handleEdit = (productVariant) => {
@@ -116,9 +146,10 @@ function ProductVariants() {
     const request = isEdit
       ? axios.put(
           `http://localhost:3001/productVariants/${productVariantData.productVariantID}`,
-          productVariantData
+          productVariantData,
+          axiosConfig
         )
-      : axios.post("http://localhost:3001/productVariants", productVariantData);
+      : axios.post("http://localhost:3001/productVariants", productVariantData, axiosConfig);
 
     request
       .then(() => {
@@ -126,7 +157,9 @@ function ProductVariants() {
         setOpenDialog(false);
         fetchProductVariants();
       })
-      .catch((err) => console.error("Save failed:", err));
+      .catch((err) => {
+        handleAuthError(err);
+      });
   };
 
   return (
@@ -193,7 +226,6 @@ function ProductVariants() {
       </MDBox>
       <Footer />
 
-      {/* Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
         <DialogTitle>
           {productVariantData.productVariantID ? "Edit Product Variant" : "Add Product Variant"}

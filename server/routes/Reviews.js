@@ -1,6 +1,6 @@
 const express = require('express');
-const { User, Product } = require('../models'); // Sequelize models for User and Product
-const Review = require('../models/Reviews'); // MongoDB Review model
+const { User, Product } = require('../models');
+const Review = require('../models/Reviews');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/permission'); 

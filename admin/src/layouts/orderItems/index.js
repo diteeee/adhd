@@ -29,7 +29,7 @@ function OrderItems() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [dialogType, setDialogType] = useState(""); // "edit" or "add"
+  const [dialogType, setDialogType] = useState("");
   const [orderItemData, setOrderItemData] = useState({
     orderItemID: "",
     sasia: "",
@@ -37,6 +37,14 @@ function OrderItems() {
     orderItemOrderID: "",
     orderItemProductID: "",
   });
+
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 
   useEffect(() => {
     fetchOrderItems();
@@ -46,7 +54,7 @@ function OrderItems() {
 
   const fetchOrderItems = () => {
     axios
-      .get("http://localhost:3001/orderItems")
+      .get("http://localhost:3001/orderItems", axiosConfig)
       .then((response) => {
         const orderItems = response.data;
         const cols = [
@@ -54,25 +62,23 @@ function OrderItems() {
           { Header: "Quantity", accessor: "sasia", align: "center" },
           { Header: "Price", accessor: "cmimi", align: "center" },
           { Header: "Order ID", accessor: "orderItemOrderID", align: "center" },
-          { Header: "Product Name", accessor: "orderItemProductID", align: "center" },
+          { Header: "Product ID", accessor: "orderItemProductID", align: "center" },
           { Header: "Actions", accessor: "actions", align: "center" },
         ];
         setColumns(cols);
 
-        const formattedRows = orderItems.map((orderItem) => ({
-          orderItemID: orderItem.orderItemID,
-          sasia: orderItem.sasia,
-          cmimi: `$${orderItem.cmimi}`,
-          orderItemOrderID: orderItem.orderItemOrderID,
-          orderItemProductID:
-            products.find((p) => p.productID === orderItem.orderItemProductID)?.emri ||
-            orderItem.orderItemProductID,
+        const formattedRows = orderItems.map((item) => ({
+          orderItemID: item.orderItemID,
+          sasia: item.sasia,
+          cmimi: item.cmimi,
+          orderItemOrderID: item.orderItemOrderID,
+          orderItemProductID: item.orderItemProductID,
           actions: (
             <div>
-              <Button color="primary" onClick={() => handleEdit(orderItem)}>
+              <Button color="primary" onClick={() => handleEdit(item)}>
                 Edit
               </Button>
-              <Button color="error" onClick={() => handleDelete(orderItem.orderItemID)}>
+              <Button color="info" onClick={() => handleDelete(item.orderItemID)}>
                 Delete
               </Button>
             </div>
@@ -88,21 +94,29 @@ function OrderItems() {
 
   const fetchProducts = () => {
     axios
-      .get("http://localhost:3001/products")
-      .then((response) => setProducts(response.data))
-      .catch((error) => console.error("Failed to fetch products:", error));
+      .get("http://localhost:3001/products", axiosConfig)
+      .then((response) => {
+        setProducts(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch products:", error);
+      });
   };
 
   const fetchOrders = () => {
     axios
-      .get("http://localhost:3001/orders")
-      .then((response) => setOrders(response.data))
-      .catch((error) => console.error("Failed to fetch orders:", error));
+      .get("http://localhost:3001/orders", axiosConfig)
+      .then((response) => {
+        setOrders(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch orders:", error);
+      });
   };
 
   const handleDelete = (orderItemID) => {
     axios
-      .delete(`http://localhost:3001/orderItems/${orderItemID}`)
+      .delete(`http://localhost:3001/orderItems/${orderItemID}`, axiosConfig)
       .then(() => {
         alert("Order item deleted successfully.");
         fetchOrderItems();
@@ -112,13 +126,13 @@ function OrderItems() {
       });
   };
 
-  const handleEdit = (orderItem) => {
+  const handleEdit = (item) => {
     setOrderItemData({
-      orderItemID: orderItem.orderItemID,
-      sasia: orderItem.sasia,
-      cmimi: orderItem.cmimi,
-      orderItemOrderID: orderItem.orderItemOrderID,
-      orderItemProductID: orderItem.orderItemProductID,
+      orderItemID: item.orderItemID,
+      sasia: item.sasia,
+      cmimi: item.cmimi,
+      orderItemOrderID: item.orderItemOrderID,
+      orderItemProductID: item.orderItemProductID,
     });
     setDialogType("edit");
     setOpenDialog(true);
@@ -141,12 +155,11 @@ function OrderItems() {
 
     if (dialogType === "edit") {
       axios
-        .put(`http://localhost:3001/orderItems/${orderItemID}`, {
-          sasia,
-          cmimi,
-          orderItemOrderID,
-          orderItemProductID,
-        })
+        .put(
+          `http://localhost:3001/orderItems/${orderItemID}`,
+          { sasia, cmimi, orderItemOrderID, orderItemProductID },
+          axiosConfig
+        )
         .then(() => {
           alert("Order item updated successfully.");
           fetchOrderItems();
@@ -155,14 +168,13 @@ function OrderItems() {
         .catch((error) => {
           console.error("Failed to update order item:", error);
         });
-    } else {
+    } else if (dialogType === "add") {
       axios
-        .post("http://localhost:3001/orderItems", {
-          sasia,
-          cmimi,
-          orderItemOrderID,
-          orderItemProductID,
-        })
+        .post(
+          "http://localhost:3001/orderItems",
+          { sasia, cmimi, orderItemOrderID, orderItemProductID },
+          axiosConfig
+        )
         .then(() => {
           alert("Order item created successfully.");
           fetchOrderItems();
@@ -218,7 +230,6 @@ function OrderItems() {
       </MDBox>
       <Footer />
 
-      {/* Dialog for Add/Edit */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Order Item" : "Add Order Item"}</DialogTitle>
         <DialogContent>
@@ -241,14 +252,16 @@ function OrderItems() {
           <TextField
             fullWidth
             select
-            label="Order"
+            label="Select Order"
             variant="outlined"
             value={orderItemData.orderItemOrderID}
             onChange={(e) =>
               setOrderItemData({ ...orderItemData, orderItemOrderID: e.target.value })
             }
             margin="normal"
-            SelectProps={{ native: true }}
+            SelectProps={{
+              native: true,
+            }}
           >
             <option value=""></option>
             {orders.map((order) => (
@@ -260,14 +273,16 @@ function OrderItems() {
           <TextField
             fullWidth
             select
-            label="Product"
+            label="Select Product"
             variant="outlined"
             value={orderItemData.orderItemProductID}
             onChange={(e) =>
               setOrderItemData({ ...orderItemData, orderItemProductID: e.target.value })
             }
             margin="normal"
-            SelectProps={{ native: true }}
+            SelectProps={{
+              native: true,
+            }}
           >
             <option value=""></option>
             {products.map((product) => (

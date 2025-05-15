@@ -28,13 +28,21 @@ function Returns() {
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [orders, setOrders] = useState([]);
-  const [dialogType, setDialogType] = useState(""); // "edit" or "add"
+  const [dialogType, setDialogType] = useState("");
   const [returnData, setReturnData] = useState({
     returnID: "",
     arsyeja: "",
     status: "",
     returnOrderID: "",
   });
+
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 
   useEffect(() => {
     fetchReturns();
@@ -51,7 +59,7 @@ function Returns() {
 
   const fetchReturns = () => {
     axios
-      .get("http://localhost:3001/returns")
+      .get("http://localhost:3001/returns", axiosConfig)
       .then((res) => {
         const formatted = res.data.map((ret) => ({
           returnID: ret.returnID,
@@ -76,7 +84,7 @@ function Returns() {
 
   const fetchOrders = () => {
     axios
-      .get("http://localhost:3001/orders")
+      .get("http://localhost:3001/orders", axiosConfig)
       .then((res) => {
         setOrders(res.data);
       })
@@ -102,7 +110,7 @@ function Returns() {
 
   const handleDelete = (returnID) => {
     axios
-      .delete(`http://localhost:3001/returns/${returnID}`)
+      .delete(`http://localhost:3001/returns/${returnID}`, axiosConfig)
       .then(() => {
         alert("Return deleted successfully.");
         fetchReturns();
@@ -115,11 +123,11 @@ function Returns() {
 
     if (dialogType === "edit") {
       axios
-        .put(`http://localhost:3001/returns/${returnID}`, {
-          arsyeja,
-          status,
-          returnOrderID,
-        })
+        .put(
+          `http://localhost:3001/returns/${returnID}`,
+          { arsyeja, status, returnOrderID },
+          axiosConfig
+        )
         .then(() => {
           alert("Return updated.");
           fetchReturns();
@@ -128,11 +136,7 @@ function Returns() {
         .catch((err) => console.error("Failed to update return:", err));
     } else {
       axios
-        .post("http://localhost:3001/returns", {
-          arsyeja,
-          status,
-          returnOrderID,
-        })
+        .post("http://localhost:3001/returns", { arsyeja, status, returnOrderID }, axiosConfig)
         .then(() => {
           alert("Return added.");
           fetchReturns();
@@ -186,7 +190,6 @@ function Returns() {
       </MDBox>
       <Footer />
 
-      {/* Return Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Return" : "Add Return"}</DialogTitle>
         <DialogContent>

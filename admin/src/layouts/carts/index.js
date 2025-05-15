@@ -38,8 +38,11 @@ function Carts() {
   }, []);
 
   const fetchCarts = () => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:3001/carts")
+      .get("http://localhost:3001/carts", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => {
         const carts = res.data;
         const cols = [
@@ -72,15 +75,21 @@ function Carts() {
   };
 
   const fetchUsers = () => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:3001/users")
+      .get("http://localhost:3001/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => setUsers(res.data))
       .catch((err) => console.error("Failed to fetch users:", err));
   };
 
   const fetchProducts = () => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:3001/products")
+      .get("http://localhost:3001/products", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => setProducts(res.data))
       .catch((err) => console.error("Failed to fetch products:", err));
   };
@@ -103,8 +112,11 @@ function Carts() {
   };
 
   const handleDelete = (cartID) => {
+    const token = localStorage.getItem("token");
     axios
-      .delete(`http://localhost:3001/carts/${cartID}`)
+      .delete(`http://localhost:3001/carts/${cartID}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then(() => {
         alert("Cart deleted.");
         fetchCarts();
@@ -113,6 +125,7 @@ function Carts() {
   };
 
   const handleSave = () => {
+    const token = localStorage.getItem("token");
     const { cartID, ...payload } = cartData;
     const method = dialogType === "edit" ? "put" : "post";
     const url =
@@ -120,7 +133,9 @@ function Carts() {
         ? `http://localhost:3001/carts/${cartID}`
         : "http://localhost:3001/carts";
 
-    axios[method](url, payload)
+    axios[method](url, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then(() => {
         alert(dialogType === "edit" ? "Cart updated." : "Cart added.");
         setOpenDialog(false);
@@ -182,7 +197,6 @@ function Carts() {
             value={cartData.sasia}
             onChange={(e) => setCartData({ ...cartData, sasia: e.target.value })}
             margin="normal"
-            type="number"
           />
           <TextField
             fullWidth
@@ -200,7 +214,6 @@ function Carts() {
               </option>
             ))}
           </TextField>
-
           <TextField
             fullWidth
             select

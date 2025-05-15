@@ -34,8 +34,11 @@ function Categories() {
   }, []);
 
   const fetchCategories = () => {
+    const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:3001/categorys")
+      .get("http://localhost:3001/categorys", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => {
         const cats = res.data;
         const cols = [
@@ -76,8 +79,11 @@ function Categories() {
   };
 
   const handleDelete = (categoryID) => {
+    const token = localStorage.getItem("token");
     axios
-      .delete(`http://localhost:3001/categorys/${categoryID}`)
+      .delete(`http://localhost:3001/categorys/${categoryID}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then(() => {
         alert("Category deleted.");
         fetchCategories();
@@ -86,6 +92,7 @@ function Categories() {
   };
 
   const handleSave = () => {
+    const token = localStorage.getItem("token");
     const { categoryID, ...payload } = categoryData;
     const method = dialogType === "edit" ? "put" : "post";
     const url =
@@ -93,7 +100,9 @@ function Categories() {
         ? `http://localhost:3001/categorys/${categoryID}`
         : "http://localhost:3001/categorys";
 
-    axios[method](url, payload)
+    axios[method](url, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then(() => {
         alert(dialogType === "edit" ? "Category updated." : "Category added.");
         setOpenDialog(false);
@@ -146,7 +155,6 @@ function Categories() {
       </MDBox>
       <Footer />
 
-      {/* Dialog for Add/Edit */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Category" : "Add Category"}</DialogTitle>
         <DialogContent>

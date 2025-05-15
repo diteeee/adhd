@@ -28,7 +28,7 @@ function Payments() {
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [orders, setOrders] = useState([]);
-  const [dialogType, setDialogType] = useState(""); // "edit" or "add"
+  const [dialogType, setDialogType] = useState("");
   const [paymentData, setPaymentData] = useState({
     paymentID: "",
     metoda: "",
@@ -36,6 +36,13 @@ function Payments() {
     data: "",
     paymentOrderID: "",
   });
+
+  const token = localStorage.getItem("token");
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 
   useEffect(() => {
     fetchPayments();
@@ -53,7 +60,7 @@ function Payments() {
 
   const fetchPayments = () => {
     axios
-      .get("http://localhost:3001/payments")
+      .get("http://localhost:3001/payments", axiosConfig)
       .then((res) => {
         const formatted = res.data.map((payment) => ({
           paymentID: payment.paymentID,
@@ -79,7 +86,7 @@ function Payments() {
 
   const fetchOrders = () => {
     axios
-      .get("http://localhost:3001/orders")
+      .get("http://localhost:3001/orders", axiosConfig)
       .then((res) => {
         setOrders(res.data);
       })
@@ -106,7 +113,7 @@ function Payments() {
 
   const handleDelete = (paymentID) => {
     axios
-      .delete(`http://localhost:3001/payments/${paymentID}`)
+      .delete(`http://localhost:3001/payments/${paymentID}`, axiosConfig)
       .then(() => {
         alert("Payment deleted successfully.");
         fetchPayments();
@@ -119,12 +126,16 @@ function Payments() {
 
     if (dialogType === "edit") {
       axios
-        .put(`http://localhost:3001/payments/${paymentID}`, {
-          metoda,
-          status,
-          data,
-          paymentOrderID,
-        })
+        .put(
+          `http://localhost:3001/payments/${paymentID}`,
+          {
+            metoda,
+            status,
+            data,
+            paymentOrderID,
+          },
+          axiosConfig
+        )
         .then(() => {
           alert("Payment updated.");
           fetchPayments();
@@ -133,12 +144,16 @@ function Payments() {
         .catch((err) => console.error("Failed to update payment:", err));
     } else {
       axios
-        .post("http://localhost:3001/payments", {
-          metoda,
-          status,
-          data,
-          paymentOrderID,
-        })
+        .post(
+          "http://localhost:3001/payments",
+          {
+            metoda,
+            status,
+            data,
+            paymentOrderID,
+          },
+          axiosConfig
+        )
         .then(() => {
           alert("Payment added.");
           fetchPayments();
@@ -192,7 +207,6 @@ function Payments() {
       </MDBox>
       <Footer />
 
-      {/* Payment Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Payment" : "Add Payment"}</DialogTitle>
         <DialogContent>

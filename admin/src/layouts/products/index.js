@@ -33,12 +33,18 @@ function Products() {
     img: null,
   });
 
+  const token = localStorage.getItem("token");
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   useEffect(() => {
     fetchCategories();
-
     setColumns([
       { Header: "Product ID", accessor: "productID" },
-      { Header: "Image", accessor: "image" }, // 👈 Add this
+      { Header: "Image", accessor: "image" },
       { Header: "Name", accessor: "emri" },
       { Header: "Description", accessor: "pershkrimi" },
       { Header: "Brand", accessor: "firma" },
@@ -53,59 +59,73 @@ function Products() {
   }, [selectedCategory]);
 
   const fetchCategories = () => {
-    axios.get("http://localhost:3001/categorys").then((res) => {
-      setCategories(res.data);
-    });
+    axios
+      .get("http://localhost:3001/categorys", axiosConfig)
+      .then((res) => {
+        setCategories(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch categories:", err);
+      });
   };
 
   const fetchProducts = () => {
-    axios.get("http://localhost:3001/products").then((res) => {
-      const filtered = res.data.filter((product) => product.productCategoryID == selectedCategory);
+    axios
+      .get("http://localhost:3001/products", axiosConfig)
+      .then((res) => {
+        const filtered = res.data.filter(
+          (product) => product.productCategoryID == selectedCategory
+        );
 
-      const formatted = filtered.map((p) => ({
-        productID: p.productID,
-        image: (
-          <img
-            src={`http://localhost:3001/${p.imageURL.replace(/\\/g, "/")}`}
-            alt={p.emri}
-            style={{ width: "70px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
-          />
-        ),
-        emri: p.emri,
-        pershkrimi: p.pershkrimi,
-        firma: p.firma,
-        cmimi: p.cmimi,
-        categoryName: p.Category?.emri || "",
-        actions: (
-          <div style={{ display: "flex", gap: 10 }}>
-            <Button color="primary" onClick={() => handleEdit(p)} size="small">
-              Edit
-            </Button>
-            <Button color="error" onClick={() => handleDelete(p.productID)} size="small">
-              Delete
-            </Button>
-          </div>
-        ),
-      }));
+        const formatted = filtered.map((p) => ({
+          productID: p.productID,
+          image: (
+            <img
+              src={`http://localhost:3001/${p.imageURL.replace(/\\/g, "/")}`}
+              alt={p.emri}
+              style={{ width: "70px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
+            />
+          ),
+          emri: p.emri,
+          pershkrimi: p.pershkrimi,
+          firma: p.firma,
+          cmimi: p.cmimi,
+          categoryName: p.Category?.emri || "",
+          actions: (
+            <div style={{ display: "flex", gap: 10 }}>
+              <Button color="primary" onClick={() => handleEdit(p)} size="small">
+                Edit
+              </Button>
+              <Button color="error" onClick={() => handleDelete(p.productID)} size="small">
+                Delete
+              </Button>
+            </div>
+          ),
+        }));
 
-      setRows(formatted);
-    });
+        setRows(formatted);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch products:", err);
+      });
   };
 
   const handleDelete = (productID) => {
     axios
-      .delete(`http://localhost:3001/products/${productID}`)
+      .delete(`http://localhost:3001/products/${productID}`, axiosConfig)
       .then(() => {
         alert("Product deleted.");
         fetchProducts();
       })
-      .catch((err) => console.error("Delete failed:", err));
+      .catch((err) => {
+        console.error("Delete failed:", err);
+      });
   };
 
   const handleEdit = (product) => {
     setProductData({
       ...product,
-      img: null, // Don't preload image
+      img: null,
       productCategoryID: product.productCategoryID,
     });
     setOpenDialog(true);
@@ -132,8 +152,8 @@ function Products() {
     const isEdit = productData.productID;
 
     const request = isEdit
-      ? axios.put(`http://localhost:3001/products/${productData.productID}`, formData)
-      : axios.post("http://localhost:3001/products", formData);
+      ? axios.put(`http://localhost:3001/products/${productData.productID}`, formData, axiosConfig)
+      : axios.post("http://localhost:3001/products", formData, axiosConfig);
 
     request
       .then(() => {
@@ -141,7 +161,9 @@ function Products() {
         setOpenDialog(false);
         fetchProducts();
       })
-      .catch((err) => console.error("Save failed:", err));
+      .catch((err) => {
+        console.error("Save failed:", err);
+      });
   };
 
   return (
@@ -208,7 +230,6 @@ function Products() {
       </MDBox>
       <Footer />
 
-      {/* Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
         <DialogTitle>{productData.productID ? "Edit Product" : "Add Product"}</DialogTitle>
         <DialogContent>

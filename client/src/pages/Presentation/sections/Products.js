@@ -186,7 +186,7 @@ const Products = () => {
               value={selectedCategory}
               onChange={handleCategoryChange}
               label="Category"
-              sx={{ height: 45, fontSize: "1rem" }} // 👈 Add this line
+              sx={{ height: 45, fontSize: "1rem" }}
             >
               <MenuItem value="">All Categories</MenuItem>
               {categories.map((category) => (

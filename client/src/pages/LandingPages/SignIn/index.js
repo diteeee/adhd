@@ -19,8 +19,8 @@ import SimpleFooter from "examples/Footers/SimpleFooter";
 import routes from "routes";
 import bgImage from "assets/images/bg-presentation.jpg";
 import axios from "axios";
-import { useUser } from "context/UserContext"; // Import the custom hook
-import { jwtDecode } from "jwt-decode"; // Import jwtDecode properly
+import { useUser } from "context/UserContext";
+import { jwtDecode } from "jwt-decode";
 
 function SignInBasic() {
   const [email, setEmail] = useState("");
@@ -30,7 +30,7 @@ function SignInBasic() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { setUser } = useUser(); // Access the setUser function from context
+  const { setUser } = useUser();
   const navigate = useNavigate();
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);

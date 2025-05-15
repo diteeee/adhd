@@ -17,7 +17,6 @@ const upload = multer({
   }),
 });
 
-// Get all product
 // Get all products
 router.get("/", async (req, res) => {
     try {

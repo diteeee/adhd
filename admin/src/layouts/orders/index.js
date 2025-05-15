@@ -28,7 +28,7 @@ function Orders() {
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [users, setUsers] = useState([]);
-  const [dialogType, setDialogType] = useState(""); // "edit" or "add"
+  const [dialogType, setDialogType] = useState("");
   const [orderData, setOrderData] = useState({
     orderID: "",
     totalPrice: "",
@@ -36,9 +36,17 @@ function Orders() {
     orderUserID: "",
   });
 
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   useEffect(() => {
     axios
-      .get("http://localhost:3001/orders")
+      .get("http://localhost:3001/orders", axiosConfig)
       .then((response) => {
         const orders = response.data;
         const cols = [
@@ -76,7 +84,7 @@ function Orders() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/users")
+      .get("http://localhost:3001/users", axiosConfig)
       .then((response) => {
         setUsers(response.data);
       })
@@ -85,13 +93,11 @@ function Orders() {
       });
   }, []);
 
-  // Handle Delete
   const handleDelete = (orderID) => {
     axios
-      .delete(`http://localhost:3001/orders/${orderID}`)
+      .delete(`http://localhost:3001/orders/${orderID}`, axiosConfig)
       .then(() => {
         alert("Order deleted successfully.");
-        // Re-fetch the orders after deletion
         fetchOrders();
       })
       .catch((error) => {
@@ -99,7 +105,6 @@ function Orders() {
       });
   };
 
-  // Handle Edit
   const handleEdit = (order) => {
     setOrderData({
       orderID: order.orderID,
@@ -111,20 +116,22 @@ function Orders() {
     setOpenDialog(true);
   };
 
-  // Handle Add
   const handleAdd = () => {
     setOrderData({ orderID: "", totalPrice: "", status: "", orderUserID: "" });
     setDialogType("add");
     setOpenDialog(true);
   };
 
-  // Handle Dialog Save
   const handleSave = () => {
     const { orderID, totalPrice, status, orderUserID } = orderData;
 
     if (dialogType === "edit") {
       axios
-        .put(`http://localhost:3001/orders/${orderID}`, { totalPrice, status, orderUserID })
+        .put(
+          `http://localhost:3001/orders/${orderID}`,
+          { totalPrice, status, orderUserID },
+          axiosConfig
+        )
         .then(() => {
           alert("Order updated successfully.");
           fetchOrders();
@@ -135,7 +142,7 @@ function Orders() {
         });
     } else if (dialogType === "add") {
       axios
-        .post("http://localhost:3001/orders", { totalPrice, status, orderUserID })
+        .post("http://localhost:3001/orders", { totalPrice, status, orderUserID }, axiosConfig)
         .then(() => {
           alert("Order created successfully.");
           fetchOrders();
@@ -147,10 +154,9 @@ function Orders() {
     }
   };
 
-  // Fetch Orders
   const fetchOrders = () => {
     axios
-      .get("http://localhost:3001/orders")
+      .get("http://localhost:3001/orders", axiosConfig)
       .then((response) => {
         const orders = response.data;
         const formattedRows = orders.map((order) => ({
@@ -222,7 +228,6 @@ function Orders() {
       </MDBox>
       <Footer />
 
-      {/* Edit / Add Order Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Order" : "Add Order"}</DialogTitle>
         <DialogContent>

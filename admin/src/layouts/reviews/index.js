@@ -37,15 +37,31 @@ function Reviews() {
     koment: "",
   });
 
-  // Fetch users & products
-  useEffect(() => {
-    axios.get("http://localhost:3001/users").then((res) => {
-      setUsers(res.data);
-    });
+  const token = localStorage.getItem("token");
 
-    axios.get("http://localhost:3001/products").then((res) => {
-      setProducts(res.data);
-    });
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  useEffect(() => {
+    if (!token) {
+      alert("Authentication required. Redirecting to login.");
+      window.location.href = "/login";
+    }
+  }, [token]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/users", axiosConfig)
+      .then((res) => setUsers(res.data))
+      .catch((err) => console.error("Failed to fetch users:", err));
+
+    axios
+      .get("http://localhost:3001/products", axiosConfig)
+      .then((res) => setProducts(res.data))
+      .catch((err) => console.error("Failed to fetch products:", err));
 
     setColumns([
       { Header: "Review ID", accessor: "reviewID" },
@@ -57,16 +73,18 @@ function Reviews() {
     ]);
   }, []);
 
-  // Fetch reviews when user is selected
   useEffect(() => {
     if (selectedUser) {
       fetchReviews();
+    } else {
+      setRows([]);
     }
   }, [selectedUser]);
 
   const fetchReviews = () => {
+    setRows([]);
     axios
-      .get(`http://localhost:3001/reviews/user/${selectedUser}`)
+      .get(`http://localhost:3001/reviews/user/${selectedUser}`, axiosConfig)
       .then((res) => {
         const reviews = res.data;
         const formatted = reviews.map((review) => ({
@@ -81,7 +99,7 @@ function Reviews() {
                 color="error"
                 onClick={() => handleDelete(review.reviewID)}
                 size="small"
-                style={{ margin: 0 }} // Removes default button margin
+                style={{ margin: 0 }}
               >
                 Delete
               </Button>
@@ -95,7 +113,7 @@ function Reviews() {
 
   const handleDelete = (reviewID) => {
     axios
-      .delete(`http://localhost:3001/reviews/${reviewID}`)
+      .delete(`http://localhost:3001/reviews/${reviewID}`, axiosConfig)
       .then(() => {
         alert("Review deleted successfully.");
         fetchReviews();
@@ -124,7 +142,7 @@ function Reviews() {
     };
 
     axios
-      .post("http://localhost:3001/reviews", payload)
+      .post("http://localhost:3001/reviews", payload, axiosConfig)
       .then(() => {
         alert("Review added.");
         fetchReviews();
@@ -153,8 +171,6 @@ function Reviews() {
                 <MDTypography variant="h6" color="white">
                   Reviews
                 </MDTypography>
-
-                {/* Select User */}
                 <TextField
                   fullWidth
                   select
@@ -162,15 +178,10 @@ function Reviews() {
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}
                   style={{ marginTop: 20 }}
-                  SelectProps={{
-                    native: true,
-                  }}
+                  SelectProps={{ native: true }}
                   sx={{
-                    "& .MuiSelect-root": {
-                      backgroundColor: "white", // White background for select dropdown
-                    },
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "white", // White background for input box
+                    "& .MuiSelect-root, & .MuiOutlinedInput-root": {
+                      backgroundColor: "white",
                     },
                   }}
                 >
@@ -181,7 +192,6 @@ function Reviews() {
                     </option>
                   ))}
                 </TextField>
-
                 <Button
                   variant="contained"
                   color="info"
@@ -206,8 +216,6 @@ function Reviews() {
         </Grid>
       </MDBox>
       <Footer />
-
-      {/* Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Add Review</DialogTitle>
         <DialogContent>
@@ -234,11 +242,9 @@ function Reviews() {
             value={reviewData.reviewProductID}
             onChange={(e) => setReviewData({ ...reviewData, reviewProductID: e.target.value })}
             margin="normal"
-            SelectProps={{
-              native: true,
-            }}
+            SelectProps={{ native: true }}
           >
-            <option value="">Select Product</option>
+            <option value=""></option>
             {products.map((product) => (
               <option key={product.productID} value={product.productID}>
                 {product.emri}

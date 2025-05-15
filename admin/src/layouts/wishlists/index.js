@@ -29,7 +29,6 @@ function Wishlists() {
     wishlistProductID: "",
   });
 
-  // Fetch users & products
   useEffect(() => {
     axios.get("http://localhost:3001/users").then((res) => {
       setUsers(res.data);
@@ -47,7 +46,6 @@ function Wishlists() {
     ]);
   }, []);
 
-  // Fetch wishlist when user is selected
   useEffect(() => {
     if (selectedUser) {
       fetchWishlist();
@@ -138,7 +136,6 @@ function Wishlists() {
                   Wishlists
                 </MDTypography>
 
-                {/* Select User */}
                 <TextField
                   fullWidth
                   select
@@ -191,7 +188,6 @@ function Wishlists() {
       </MDBox>
       <Footer />
 
-      {/* Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Add to Wishlist</DialogTitle>
         <DialogContent>

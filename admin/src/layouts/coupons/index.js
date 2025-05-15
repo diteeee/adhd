@@ -37,9 +37,17 @@ function Coupons() {
     couponPaymentID: "",
   });
 
+  const token = localStorage.getItem("token");
+
+  const axiosConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
   useEffect(() => {
     axios
-      .get("http://localhost:3001/coupons")
+      .get("http://localhost:3001/coupons", axiosConfig)
       .then((response) => {
         const coupons = response.data;
         const cols = [
@@ -79,7 +87,7 @@ function Coupons() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/payments")
+      .get("http://localhost:3001/payments", axiosConfig)
       .then((response) => {
         setPayments(response.data);
       })
@@ -88,13 +96,11 @@ function Coupons() {
       });
   }, []);
 
-  // Handle Delete
   const handleDelete = (couponID) => {
     axios
-      .delete(`http://localhost:3001/coupons/${couponID}`)
+      .delete(`http://localhost:3001/coupons/${couponID}`, axiosConfig)
       .then(() => {
         alert("Coupon deleted successfully.");
-        // Re-fetch the coupons after deletion
         fetchCoupons();
       })
       .catch((error) => {
@@ -102,7 +108,6 @@ function Coupons() {
       });
   };
 
-  // Handle Edit
   const handleEdit = (coupon) => {
     setCouponData({
       couponID: coupon.couponID,
@@ -115,20 +120,22 @@ function Coupons() {
     setOpenDialog(true);
   };
 
-  // Handle Add
   const handleAdd = () => {
     setCouponData({ couponID: "", kodi: "", type: "", shuma: "", couponPaymentID: "" });
     setDialogType("add");
     setOpenDialog(true);
   };
 
-  // Handle Dialog Save
   const handleSave = () => {
     const { couponID, kodi, type, shuma, couponPaymentID } = couponData;
 
     if (dialogType === "edit") {
       axios
-        .put(`http://localhost:3001/coupons/${couponID}`, { kodi, type, shuma, couponPaymentID })
+        .put(
+          `http://localhost:3001/coupons/${couponID}`,
+          { kodi, type, shuma, couponPaymentID },
+          axiosConfig
+        )
         .then(() => {
           alert("Coupon updated successfully.");
           fetchCoupons();
@@ -139,7 +146,7 @@ function Coupons() {
         });
     } else if (dialogType === "add") {
       axios
-        .post("http://localhost:3001/coupons", { kodi, type, shuma, couponPaymentID })
+        .post("http://localhost:3001/coupons", { kodi, type, shuma, couponPaymentID }, axiosConfig)
         .then(() => {
           alert("Coupon created successfully.");
           fetchCoupons();
@@ -151,10 +158,9 @@ function Coupons() {
     }
   };
 
-  // Fetch Coupons
   const fetchCoupons = () => {
     axios
-      .get("http://localhost:3001/coupons")
+      .get("http://localhost:3001/coupons", axiosConfig)
       .then((response) => {
         const coupons = response.data;
         const formattedRows = coupons.map((coupon) => ({
@@ -227,7 +233,6 @@ function Coupons() {
       </MDBox>
       <Footer />
 
-      {/* Edit / Add Coupon Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Coupon" : "Add Coupon"}</DialogTitle>
         <DialogContent>

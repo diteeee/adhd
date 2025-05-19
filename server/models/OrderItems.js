@@ -26,14 +26,14 @@ module.exports = (sequelize, DataTypes) => {
         });
         models.Order.hasMany(OrderItem, { foreignKey: 'orderItemOrderID' });
 
-        OrderItem.belongsTo(models.Product, {
+       OrderItem.belongsTo(models.ProductVariant, {
             foreignKey: {
-                name: 'orderItemProductID',
+                name: 'orderItemProductVariantID',  // Linking to ProductVariant
                 allowNull: false
             },
             onDelete: 'CASCADE'
         });
-        models.Product.hasMany(OrderItem, { foreignKey: 'orderItemProductID' });
+        models.ProductVariant.hasMany(OrderItem, { foreignKey: 'orderItemProductVariantID' });
     };
 
     return OrderItem;

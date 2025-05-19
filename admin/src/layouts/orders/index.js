@@ -43,6 +43,7 @@ function Orders() {
     orderUserID: "",
   });
   const [orderItems, setOrderItems] = useState([]);
+  const [editableOrderItems, setEditableOrderItems] = useState([]);
 
   const token = localStorage.getItem("token");
   const axiosConfig = {
@@ -127,21 +128,17 @@ function Orders() {
   };
 
   const handleAdd = () => {
-    setOrderData({ orderID: "", totalPrice: "", status: "", orderUserID: "" });
+    setOrderData({ orderID: "", status: "", orderUserID: "" });
     setDialogType("add");
     setOpenDialog(true);
   };
 
   const handleSave = () => {
-    const { orderID, totalPrice, status, orderUserID } = orderData;
+    const { orderID, status, orderUserID } = orderData;
 
     if (dialogType === "edit") {
       axios
-        .put(
-          `http://localhost:3001/orders/${orderID}`,
-          { totalPrice, status, orderUserID },
-          axiosConfig
-        )
+        .put(`http://localhost:3001/orders/${orderID}`, { status, orderUserID }, axiosConfig)
         .then(() => {
           alert("Order updated successfully.");
           fetchOrders();
@@ -152,7 +149,7 @@ function Orders() {
         });
     } else if (dialogType === "add") {
       axios
-        .post("http://localhost:3001/orders", { totalPrice, status, orderUserID }, axiosConfig)
+        .post("http://localhost:3001/orders", { status, orderUserID }, axiosConfig)
         .then(() => {
           alert("Order created successfully.");
           fetchOrders();
@@ -169,10 +166,47 @@ function Orders() {
       .get(`http://localhost:3001/orderitems/order/${orderID}`, axiosConfig)
       .then((response) => {
         setOrderItems(response.data);
+        setEditableOrderItems(response.data.map((item) => ({ ...item })));
         setOpenOrderItemsDialog(true);
       })
       .catch((error) => {
         console.error("Failed to fetch order items:", error);
+      });
+  };
+
+  const handleDeleteOrderItem = (orderItemID) => {
+    axios
+      .delete(`http://localhost:3001/orderitems/${orderItemID}`, axiosConfig)
+      .then(() => {
+        setEditableOrderItems((prev) => prev.filter((item) => item.orderItemID !== orderItemID));
+      })
+      .catch((error) => {
+        console.error("Failed to delete order item:", error);
+      });
+  };
+
+  const handleSaveOrderItems = () => {
+    const updateRequests = editableOrderItems.map((item) =>
+      axios.put(
+        `http://localhost:3001/orderitems/${item.orderItemID}`,
+        {
+          sasia: item.sasia,
+          orderItemOrderID: item.orderItemOrderID,
+          orderItemProductVariantID: item.orderItemProductVariantID,
+        },
+        axiosConfig
+      )
+    );
+
+    Promise.all(updateRequests)
+      .then(() => {
+        alert("Order items updated successfully.");
+        setOpenOrderItemsDialog(false);
+        fetchOrders();
+      })
+      .catch((error) => {
+        console.error("Failed to update order items:", error);
+        alert("Failed to update order items. See console for details.");
       });
   };
 
@@ -257,14 +291,6 @@ function Orders() {
         <DialogContent>
           <TextField
             fullWidth
-            label="Total Price"
-            variant="outlined"
-            value={orderData.totalPrice}
-            onChange={(e) => setOrderData({ ...orderData, totalPrice: e.target.value })}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
             label="Status"
             variant="outlined"
             value={orderData.status}
@@ -279,9 +305,7 @@ function Orders() {
             value={orderData.orderUserID}
             onChange={(e) => setOrderData({ ...orderData, orderUserID: e.target.value })}
             margin="normal"
-            SelectProps={{
-              native: true,
-            }}
+            SelectProps={{ native: true }}
           >
             <option value=""></option>
             {users.map((user) => (
@@ -291,7 +315,6 @@ function Orders() {
             ))}
           </TextField>
         </DialogContent>
-
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} color="info">
             Cancel
@@ -301,6 +324,7 @@ function Orders() {
           </Button>
         </DialogActions>
       </Dialog>
+
       <Dialog
         open={openOrderItemsDialog}
         onClose={() => setOpenOrderItemsDialog(false)}
@@ -309,37 +333,74 @@ function Orders() {
       >
         <DialogTitle>Order Items</DialogTitle>
         <DialogContent>
-          {orderItems.length === 0 ? (
+          {editableOrderItems.length === 0 ? (
             <Typography>No items found for this order.</Typography>
           ) : (
             <>
-              {orderItems.map((item) => (
+              {editableOrderItems.map((item) => (
                 <Accordion key={item.orderItemID} disableGutters>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle1">{item.Product.emri}</Typography>
+                    <Typography variant="subtitle1">{item.ProductVariant.Product.emri}</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <Typography>Quantity: {item.sasia}</Typography>
-                    <Typography>Price per item: ${Number(item.cmimi).toFixed(2)}</Typography>
+                    <TextField
+                      type="number"
+                      label="Quantity"
+                      value={item.sasia}
+                      onChange={(e) => {
+                        const newQuantity = Number(e.target.value);
+                        const updatedItems = editableOrderItems.map((i) =>
+                          i.orderItemID === item.orderItemID ? { ...i, sasia: newQuantity } : i
+                        );
+                        setEditableOrderItems(updatedItems);
+                      }}
+                      fullWidth
+                      margin="dense"
+                    />
+
                     <Typography>
-                      Subtotal: ${(Number(item.cmimi) * item.sasia).toFixed(2)}
+                      Unit Price: ${Number(item.ProductVariant?.Product?.cmimi || 0).toFixed(2)}
                     </Typography>
+
+                    <Typography>
+                      Total Price: $
+                      {(
+                        Number(item.ProductVariant?.Product?.cmimi || 0) * Number(item.sasia)
+                      ).toFixed(2)}
+                    </Typography>
+
+                    <Button
+                      color="error"
+                      onClick={() => handleDeleteOrderItem(item.orderItemID)}
+                      style={{ marginTop: "0.5rem" }}
+                    >
+                      Delete Item
+                    </Button>
                   </AccordionDetails>
                 </Accordion>
               ))}
+
               <Divider sx={{ marginY: 2 }} />
               <Typography variant="h6" align="right">
                 Total Price: $
-                {orderItems
-                  .reduce((acc, item) => acc + Number(item.cmimi) * item.sasia, 0)
+                {editableOrderItems
+                  .reduce(
+                    (acc, item) =>
+                      acc +
+                      Number(item.ProductVariant?.Product?.cmimi || 0) * Number(item.sasia || 0),
+                    0
+                  )
                   .toFixed(2)}
               </Typography>
             </>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenOrderItemsDialog(false)} color="primary">
-            Close
+          <Button onClick={() => setOpenOrderItemsDialog(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveOrderItems} color="primary">
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>

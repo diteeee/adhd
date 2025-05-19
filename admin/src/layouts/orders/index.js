@@ -7,7 +7,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
+  Divider,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -27,6 +33,7 @@ function Orders() {
   const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openOrderItemsDialog, setOpenOrderItemsDialog] = useState(false);
   const [users, setUsers] = useState([]);
   const [dialogType, setDialogType] = useState("");
   const [orderData, setOrderData] = useState({
@@ -35,9 +42,9 @@ function Orders() {
     status: "",
     orderUserID: "",
   });
+  const [orderItems, setOrderItems] = useState([]);
 
   const token = localStorage.getItem("token");
-
   const axiosConfig = {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -70,6 +77,9 @@ function Orders() {
               </Button>
               <Button color="info" onClick={() => handleDelete(order.orderID)}>
                 Delete
+              </Button>
+              <Button color="secondary" onClick={() => handleViewOrderItems(order.orderID)}>
+                View Items
               </Button>
             </div>
           ),
@@ -154,6 +164,18 @@ function Orders() {
     }
   };
 
+  const handleViewOrderItems = (orderID) => {
+    axios
+      .get(`http://localhost:3001/orderitems/order/${orderID}`, axiosConfig)
+      .then((response) => {
+        setOrderItems(response.data);
+        setOpenOrderItemsDialog(true);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch order items:", error);
+      });
+  };
+
   const fetchOrders = () => {
     axios
       .get("http://localhost:3001/orders", axiosConfig)
@@ -163,15 +185,17 @@ function Orders() {
           orderID: order.orderID,
           totalPrice: order.totalPrice,
           status: order.status,
-          createdAt: new Date(order.createdAt).toLocaleDateString(),
           user: `${order.User?.emri || "Unknown"} ${order.User?.mbiemri || ""}`,
           actions: (
             <div>
-              <Button color="info" onClick={() => handleEdit(order)}>
+              <Button color="primary" onClick={() => handleEdit(order)}>
                 Edit
               </Button>
-              <Button color="error" onClick={() => handleDelete(order.orderID)}>
+              <Button color="info" onClick={() => handleDelete(order.orderID)}>
                 Delete
+              </Button>
+              <Button color="secondary" onClick={() => handleViewOrderItems(order.orderID)}>
+                View Items
               </Button>
             </div>
           ),
@@ -274,6 +298,48 @@ function Orders() {
           </Button>
           <Button onClick={handleSave} color="primary">
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={openOrderItemsDialog}
+        onClose={() => setOpenOrderItemsDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Order Items</DialogTitle>
+        <DialogContent>
+          {orderItems.length === 0 ? (
+            <Typography>No items found for this order.</Typography>
+          ) : (
+            <>
+              {orderItems.map((item) => (
+                <Accordion key={item.orderItemID} disableGutters>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="subtitle1">{item.Product.emri}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography>Quantity: {item.sasia}</Typography>
+                    <Typography>Price per item: ${Number(item.cmimi).toFixed(2)}</Typography>
+                    <Typography>
+                      Subtotal: ${(Number(item.cmimi) * item.sasia).toFixed(2)}
+                    </Typography>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+              <Divider sx={{ marginY: 2 }} />
+              <Typography variant="h6" align="right">
+                Total Price: $
+                {orderItems
+                  .reduce((acc, item) => acc + Number(item.cmimi) * item.sasia, 0)
+                  .toFixed(2)}
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenOrderItemsDialog(false)} color="primary">
+            Close
           </Button>
         </DialogActions>
       </Dialog>

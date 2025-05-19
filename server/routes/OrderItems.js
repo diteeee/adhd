@@ -27,21 +27,47 @@ router.get("/:orderItemID", async (req, res) => {
     }
 });
 
+//get order items of an order
+router.get("/order/:orderID", async (req, res) => {
+    try {
+        const orderItems = await OrderItem.findAll({
+            where: { orderItemOrderID: req.params.orderID },
+            include: [{ model: Product }],
+        });
+        res.json(orderItems);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to retrieve order items." });
+    }
+});
+
 // Create new orderItem
 router.post("/", async (req, res) => {
     try {
         const { sasia, cmimi, orderItemOrderID, orderItemProductID } = req.body;
-        const order = await Order.findByPk(orderItemOrderID);
+
+        // Validate Order
+        const order = await Order.findByPk(orderItemOrderID); // Ensure `orderItemOrderID` refers to `orderID`
         if (!order) {
-            return res.status(404).json({ error: "Order not found." });
+            return res.status(404).json({ error: "Order not found. Please create the order first." });
         }
+
+        // Validate Product
         const product = await Product.findByPk(orderItemProductID);
         if (!product) {
             return res.status(404).json({ error: "Product not found." });
         }
-        const newOrderItem = await OrderItem.create({ sasia, cmimi, orderItemOrderID, orderItemProductID });
+
+        // Create OrderItem
+        const newOrderItem = await OrderItem.create({
+            sasia,
+            cmimi,
+            orderItemOrderID,
+            orderItemProductID,
+        });
+
         res.status(201).json(newOrderItem);
     } catch (error) {
+        console.error("Error creating orderItem:", error);
         res.status(500).json({ error: "Failed to create orderItem." });
     }
 });

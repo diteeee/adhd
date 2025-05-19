@@ -43,7 +43,6 @@ import Categories from "layouts/categories";
 import Products from "layouts/products";
 import ProductVariants from "layouts/productVariants";
 import Orders from "layouts/orders";
-import OrderItems from "layouts/orderItems";
 import Payments from "layouts/payments";
 import Returns from "layouts/returns";
 import Coupons from "layouts/coupons";
@@ -111,14 +110,6 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/orders",
     component: <Orders />,
-  },
-  {
-    type: "collapse",
-    name: "Order Items",
-    key: "order items",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/orderItems",
-    component: <OrderItems />,
   },
   {
     type: "collapse",

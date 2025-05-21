@@ -30,12 +30,12 @@ router.get("/:orderID", async (req, res) => {
 // Create new order
 router.post("/", async (req, res) => {
     try {
-        const { totalPrice, status, orderUserID } = req.body;
+        const { status, orderUserID } = req.body;
         const user = await User.findByPk(orderUserID);
         if (!user) {
             return res.status(404).json({ error: "User not found." });
         }
-        const newOrder = await Order.create({ totalPrice, status, orderUserID });
+        const newOrder = await Order.create({ status, orderUserID });
         res.status(201).json(newOrder);
     } catch (error) {
         res.status(500).json({ error: "Failed to create order." });
@@ -45,12 +45,12 @@ router.post("/", async (req, res) => {
 // Update order by ID
 router.put("/:orderID", auth, checkRole(["admin"]), async (req, res) => {
     try {
-        const { totalPrice, status, orderUserID } = req.body;
+        const { status, orderUserID } = req.body;
         const order = await Order.findByPk(req.params.orderID);
         if (!order) {
             return res.status(404).json({ error: "Order not found." });
         }
-        await order.update({ totalPrice, status, orderUserID });
+        await order.update({ status, orderUserID });
         res.json(order);
     } catch (error) {
         res.status(500).json({ error: "Failed to update order." });

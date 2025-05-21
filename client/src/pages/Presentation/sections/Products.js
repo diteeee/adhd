@@ -164,6 +164,31 @@ const Products = () => {
     }
   };
 
+  const handleAddToCart = async (productID) => {
+    if (!user) {
+      alert("Please log in to add products to your cart.");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        "http://localhost:3001/carts",
+        {
+          sasia: 1,
+          cartUserID: user.userID,
+          cartProductID: productID,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert("Product added to cart!");
+      console.log(response);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Failed to add product to cart.");
+    }
+  };
+
   return (
     <>
       <DefaultNavbar routes={routes} sticky />
@@ -241,6 +266,16 @@ const Products = () => {
                             Delete
                           </Button>
                         </Stack>
+                      )}
+                      {user && (
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{ mt: 2 }}
+                          onClick={() => handleAddToCart(product.productID)}
+                        >
+                          Add to Cart
+                        </Button>
                       )}
                     </CardContent>
                   </Card>

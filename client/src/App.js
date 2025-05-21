@@ -7,6 +7,7 @@ import Presentation from "layouts/pages/presentation";
 import { UserProvider, useUser } from "context/UserContext";
 import routes from "routes";
 import Notification from "./Notifications";
+import PaymentPage from "./pages/Presentation/sections/Payment";
 
 function AppContent() {
   const { user } = useUser();
@@ -48,6 +49,7 @@ function AppContent() {
         {getRoutes(routes)}
         <Route path="/presentation" element={<Presentation />} />
         <Route path="*" element={<Navigate to="/presentation" />} />
+        <Route path="/payment" element={<PaymentPage />} />
       </Routes>
     </>
   );

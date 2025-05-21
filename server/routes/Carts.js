@@ -32,6 +32,20 @@ router.get("/:cartID", async (req, res) => {
     }
 });
 
+// Get cart items by userID
+router.get("/user/:userID", async (req, res) => {
+  try {
+    const userID = req.params.userID;
+    const cartItems = await Cart.findAll({
+      where: { cartUserID: userID },
+      include: [Product],
+    });
+    res.json(cartItems);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve cart items." });
+  }
+});
+
 // Create new cart
 router.post("/", async (req, res) => {
     try {
@@ -53,20 +67,15 @@ router.post("/", async (req, res) => {
 
 // Update cart by ID
 router.put("/:cartID", auth, checkRole(["admin"]), async (req, res) => {
+    const { cartID } = req.params;
+    const { sasia } = req.body;
+
     try {
-        const { sasia, cartUserID, cartProductID } = req.body;
-        const cart = await Cart.findByPk(req.params.cartID);
-        if (!cart) {
-            return res.status(404).json({ error: "Cart not found." });
-        }
-        const product = await Product.findByPk(cartProductID);
-        if (!product) {
-            return res.status(404).json({ error: "Product not found." });
-        }
-        await cart.update({ sasia, cartUserID, cartProductID });
-        res.json(cart);
+        await Cart.update({ sasia }, { where: { cartID: cartID } });
+        res.status(200).json({ message: 'Quantity updated successfully' });
     } catch (error) {
-        res.status(500).json({ error: "Failed to update cart." });
+        console.error(error);
+        res.status(500).json({ error: 'Failed to update quantity' });
     }
 });
 

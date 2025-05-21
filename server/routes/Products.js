@@ -76,20 +76,26 @@ router.post("/", upload.single('img'), auth, checkRole(["admin"]), async (req, r
 
 // Update product by ID
 router.put("/:productID", upload.single('img'), auth, checkRole(["admin"]), async (req, res) => {
-    try {
-        const { emri, pershkrimi, firma, cmimi, productCategoryID } = req.body;
-        const product = await Product.findByPk(req.params.productID);
-        if (!product) {
-            return res.status(404).json({ error: "Product not found." });
-        }
+  try {
+    const { emri, pershkrimi, firma, cmimi, productCategoryID } = req.body;
+    const product = await Product.findByPk(req.params.productID);
 
-        const imageURL = req.file ? req.file.path : product.imageUrl;
-
-        await product.update({ emri, pershkrimi, firma, cmimi, imageURL, productCategoryID });
-        res.json(product);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to update product." });
+    if (!product) {
+      return res.status(404).json({ error: "Product not found." });
     }
+
+    const category = await Category.findByPk(productCategoryID);
+    if (!category) {
+      return res.status(404).json({ error: "Category not found." });
+    }
+
+    const imageURL = req.file ? req.file.path : product.imageURL;
+
+    await product.update({ emri, pershkrimi, firma, cmimi, imageURL, productCategoryID });
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update product." });
+  }
 });
 
 // Delete product by ID

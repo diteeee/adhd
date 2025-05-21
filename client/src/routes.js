@@ -46,6 +46,8 @@ import Author from "layouts/pages/landing-pages/author";
 import SignIn from "layouts/pages/authentication/sign-in";
 import SignOutPage from "pages/LandingPages/SignOut";
 import Products from "pages/Presentation/sections/Products";
+import Cart from "pages/Presentation/sections/Cart";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 
 const routes = [
   {
@@ -110,6 +112,13 @@ const routes = [
         key: "products",
       },
     ],
+  },
+  {
+    name: "",
+    icon: <ShoppingCartIcon />,
+    route: "/sections/cart",
+    component: <Cart />,
+    key: "cart",
   },
 ];
 

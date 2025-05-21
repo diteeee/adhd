@@ -41,7 +41,7 @@ router.post("/", async (req, res) => {
     );
 
     console.log("Sign-in successful for email:", email);
-    res.json({ success: true, token });
+    res.json({ success: true, token, user });
   } catch (error) {
     console.error("Sign-in error:", error);
     res.status(500).json({

@@ -22,14 +22,14 @@ module.exports = (sequelize, DataTypes) => {
         });
         models.User.hasMany(Cart, { foreignKey: 'cartUserID' });
 
-        Cart.belongsTo(models.Product, {
+        Cart.belongsTo(models.ProductVariant, {
             foreignKey: {
-                name: 'cartProductID',
+                name: 'cartProductVariantID',
                 allowNull: false
             },
             onDelete: 'CASCADE'
         });
-        models.Product.hasMany(Cart, { foreignKey: 'cartProductID' });
+        models.ProductVariant.hasMany(Cart, { foreignKey: 'cartProductVariantID' });
     };
 
     return Cart;

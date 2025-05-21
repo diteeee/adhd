@@ -17,6 +17,7 @@ import {
   DialogContent,
   TextField,
   DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import MKBox from "components/MKBox";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
@@ -42,10 +43,18 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // Add/Edit product dialog
   const [editingProduct, setEditingProduct] = useState(null);
   const [productForm, setProductForm] = useState(initialProductState);
 
+  // New for shade/variant dialog
+  const [shadeDialogOpen, setShadeDialogOpen] = useState(false);
+  const [selectedProductVariants, setSelectedProductVariants] = useState([]);
+  const [selectedShade, setSelectedShade] = useState("");
+  const [loadingVariants, setLoadingVariants] = useState(false);
+  const [currentProductForShade, setCurrentProductForShade] = useState(null);
+
+  console.log(currentProductForShade);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -164,29 +173,54 @@ const Products = () => {
     }
   };
 
-  const handleAddToCart = async (productID) => {
+  // New: open shade selection dialog when Add to Cart is clicked
+  const handleAddToCartClick = async (product) => {
     if (!user) {
       alert("Please log in to add products to your cart.");
       return;
     }
+    setCurrentProductForShade(product);
+    setLoadingVariants(true);
     try {
-      const response = await axios.post(
-        "http://localhost:3001/carts",
-        {
-          sasia: 1,
-          cartUserID: user.userID,
-          cartProductID: productID,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const res = await axios.get(
+        `http://localhost:3001/productVariants/products/${product.productID}`
       );
-      alert("Product added to cart!");
+      setSelectedProductVariants(res.data);
+      setSelectedShade("");
+      setShadeDialogOpen(true);
+    } catch (err) {
+      console.error("Error fetching product variants:", err);
+      alert("Failed to load product variants.");
+    } finally {
+      setLoadingVariants(false);
+    }
+  };
+
+  // Confirm shade and add variant to cart
+  const handleConfirmShade = async () => {
+    if (!selectedShade) {
+      alert("Please select a shade.");
+      return;
+    }
+    try {
+      const response = await axios.post("http://localhost:3001/carts", {
+        sasia: 1,
+        cartUserID: user.userID,
+        cartProductVariantID: selectedShade,
+      });
+      alert("Product variant added to cart!");
+      setShadeDialogOpen(false);
       console.log(response);
     } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Failed to add product to cart.");
+      console.error("Error adding variant to cart:", error);
+      alert("Failed to add product variant to cart.");
     }
+  };
+
+  const handleShadeDialogClose = () => {
+    setShadeDialogOpen(false);
+    setSelectedProductVariants([]);
+    setSelectedShade("");
   };
 
   return (
@@ -197,9 +231,13 @@ const Products = () => {
           {user?.role === "admin" && (
             <Button
               variant="contained"
-              color="primary"
               onClick={handleAddProduct}
-              sx={{ mb: 2, color: "#fff !important" }}
+              sx={{
+                mt: 2,
+                backgroundColor: "#7b1fa2",
+                color: "#ffffff",
+                "&:hover": { backgroundColor: "#6a1b9a" },
+              }}
             >
               Add Product
             </Button>
@@ -224,8 +262,9 @@ const Products = () => {
 
           <Grid container spacing={3}>
             {loading ? (
-              <Grid item xs={12}>
-                <Typography variant="h6" align="center">
+              <Grid item xs={12} textAlign="center">
+                <CircularProgress />
+                <Typography variant="h6" align="center" mt={2}>
                   Loading products...
                 </Typography>
               </Grid>
@@ -255,7 +294,16 @@ const Products = () => {
 
                       {user?.role === "admin" && (
                         <Stack direction="row" spacing={1} mt={2}>
-                          <Button size="small" onClick={() => handleEdit(product)}>
+                          <Button
+                            size="small"
+                            onClick={() => handleEdit(product)}
+                            sx={{
+                              mt: 2,
+                              backgroundColor: "#7b1fa2",
+                              color: "#ffffff",
+                              "&:hover": { backgroundColor: "#6a1b9a", color: "#ffffff" },
+                            }}
+                          >
                             Edit
                           </Button>
                           <Button
@@ -268,14 +316,20 @@ const Products = () => {
                         </Stack>
                       )}
                       {user && (
-                        <Button
-                          variant="contained"
-                          size="small"
-                          sx={{ mt: 2 }}
-                          onClick={() => handleAddToCart(product.productID)}
-                        >
-                          Add to Cart
-                        </Button>
+                        <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              backgroundColor: "#7b1fa2",
+                              color: "#ffffff",
+                              "&:hover": { backgroundColor: "#6a1b9a" },
+                            }}
+                            onClick={() => handleAddToCartClick(product)}
+                          >
+                            Add to Cart
+                          </Button>
+                        </Stack>
                       )}
                     </CardContent>
                   </Card>
@@ -292,6 +346,7 @@ const Products = () => {
         </Container>
       </MKBox>
 
+      {/* Add/Edit Product Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{editingProduct ? "Edit Product" : "Add Product"}</DialogTitle>
         <DialogContent>
@@ -343,22 +398,95 @@ const Products = () => {
               ))}
             </Select>
           </FormControl>
-          <Button variant="outlined" component="label" sx={{ mt: 2 }}>
+          <Button
+            variant="outlined"
+            component="label"
+            sx={{
+              mt: 2,
+              color: "#7b1fa2",
+              borderColor: "#7b1fa2",
+              "&:hover": { borderColor: "#6a1b9a", color: "#6a1b9a" },
+            }}
+          >
             Upload Image
             <input type="file" hidden onChange={handleFileChange} />
           </Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
+          <Button
+            onClick={handleClose}
+            sx={{
+              color: "#7b1fa2",
+              "&:hover": { color: "#CBC3E1" },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{
+              backgroundColor: "#7b1fa2",
+              color: "#ffffff",
+              "&:hover": { backgroundColor: "#6a1b9a" },
+            }}
+          >
             {editingProduct ? "Update" : "Add"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <MKBox pt={6} px={1} mt={6}>
-        <DefaultFooter content={footerRoutes} />
-      </MKBox>
+      {/* Shade Selection Dialog */}
+      <Dialog open={shadeDialogOpen} onClose={handleShadeDialogClose} maxWidth="xs" fullWidth>
+        <DialogTitle>Select a Shade</DialogTitle>
+        <DialogContent>
+          {loadingVariants ? (
+            <CircularProgress />
+          ) : selectedProductVariants.length === 0 ? (
+            <Typography>No shades available for this product.</Typography>
+          ) : (
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Shade</InputLabel>
+              <Select
+                value={selectedShade}
+                onChange={(e) => setSelectedShade(e.target.value)}
+                label="Shade"
+              >
+                {selectedProductVariants.map((variant) => (
+                  <MenuItem key={variant.productVariantID} value={variant.productVariantID}>
+                    {variant.shade}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleShadeDialogClose}
+            sx={{
+              color: "#7b1fa2",
+              "&:hover": { color: "#CBC3E1" },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmShade}
+            variant="contained"
+            disabled={!selectedShade}
+            sx={{
+              backgroundColor: "#7b1fa2",
+              color: "#ffffff",
+              "&:hover": { backgroundColor: "#6a1b9a" },
+            }}
+          >
+            Add to Cart
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <DefaultFooter content={footerRoutes} />
     </>
   );
 };

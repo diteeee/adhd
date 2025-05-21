@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode"; // named import
 
 const UserContext = createContext();
 
@@ -13,7 +13,9 @@ export const UserProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const decodedToken = jwtDecode(token);
+        const decodedToken = jwtDecode(token); // use named import function here
+        console.log("Decoded token:", decodedToken);
+
         const { role, email, emri, mbiemri, nrTel, userID } = decodedToken;
 
         const currentTime = Date.now() / 1000;

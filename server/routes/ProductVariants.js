@@ -31,6 +31,20 @@ router.get("/:productVariantID", async (req, res) => {
     }
 });
 
+// Get all variants by productID
+router.get("/products/:productID", async (req, res) => {
+  try {
+    const productVariants = await ProductVariant.findAll({
+      where: { productVariantProductID: req.params.productID }, // assuming this is FK name
+      include: { model: Product }
+    });
+    res.json(productVariants);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to retrieve product variants by productID." });
+  }
+});
+
 router.post("/", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { shade, numri, inStock, productVariantProductID } = req.body;

@@ -17,7 +17,12 @@ const CartPage = () => {
   const token = localStorage.getItem("token");
 
   const handleProceedToCheckout = () => {
-    navigate("/Payment");
+    navigate("/Payment", {
+      state: {
+        cartItems,
+        totalPrice,
+      },
+    });
   };
 
   useEffect(() => {

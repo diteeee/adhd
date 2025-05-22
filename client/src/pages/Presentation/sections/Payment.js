@@ -1,142 +1,88 @@
+// PaymentPage.jsx
 import React, { useState } from "react";
-import PropTypes from "prop-types";
-import { Container, Box, Typography, Button, TextField, Divider } from "@mui/material";
-import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-import DefaultFooter from "examples/Footers/DefaultFooter";
-import routes from "routes";
-import footerRoutes from "footer.routes";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Container,
+  Typography,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Button,
+  Paper,
+  Stack,
+} from "@mui/material";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useUser } from "context/UserContext";
 
-const PaymentPage = ({ cartItems = [], totalPrice }) => {
+const PaymentPage = () => {
+  const { state } = useLocation();
   const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState("");
+  const { cartItems, totalPrice } = state || {};
+  const token = localStorage.getItem("token");
+  const { user } = useUser();
 
-  const handlePaymentSubmit = async () => {
+  const [paymentMethod, setPaymentMethod] = useState("credit_card");
+  const [loading, setLoading] = useState(false);
+
+  const handlePayment = async () => {
+    setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:3001/payments",
+      const res = await axios.post(
+        "http://localhost:3001/orders/checkout",
         {
-          metoda: paymentMethod,
-          status: paymentStatus,
-          data: new Date(),
-          paymentOrderID: cartItems.map((item) => item.cartID),
+          userID: user.userID,
+          paymentMethod,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      console.log("Payment submitted:", response.data);
-      navigate("/OrderConfirmation");
-    } catch (error) {
-      console.error("Error submitting payment:", error);
+
+      // Simulate redirect to payment gateway or confirmation
+      alert("Order placed! Payment ID: " + res.data.paymentID);
+      navigate("/order-confirmation", {
+        state: { orderID: res.data.orderID, paymentID: res.data.paymentID },
+      });
+    } catch (err) {
+      alert("Payment failed: " + err.response?.data?.error || err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      <DefaultNavbar routes={routes} sticky />
-      <Container maxWidth="lg">
-        <Box sx={{ paddingTop: "100px", minHeight: "70vh", backgroundColor: "#f9f5f7" }}>
-          <Typography
-            variant="h3"
-            align="center"
-            gutterBottom
-            sx={{ fontWeight: "700", color: "#7b1fa2", fontFamily: "'Playfair Display', serif" }}
-          >
-            Payment Details
-          </Typography>
+    <Container maxWidth="sm" sx={{ mt: 10 }}>
+      <Paper sx={{ p: 4 }}>
+        <Typography variant="h6">Items in your order:</Typography>
+        <ul>
+          {cartItems?.map((item) => (
+            <li key={item.cartID}>
+              {item.ProductVariant?.Product?.emri} × {item.sasia}
+            </li>
+          ))}
+        </ul>
 
-          {/* Payment form */}
-          <Box
-            sx={{
-              backgroundColor: "#fff",
-              borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(123,31,162,0.15)",
-              p: 3,
-              mb: 4,
-            }}
-          >
-            <TextField
-              fullWidth
-              label="Payment Method"
-              variant="outlined"
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              fullWidth
-              label="Payment Status"
-              variant="outlined"
-              value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handlePaymentSubmit}
-              fullWidth
-              sx={{ backgroundColor: "#7b1fa2", mt: 2, color: "#ffffff" }}
-            >
-              Submit Payment
-            </Button>
-          </Box>
+        <Typography variant="h4" gutterBottom>
+          Choose Payment Method
+        </Typography>
 
-          {/* Order summary */}
-          <Box
-            sx={{
-              backgroundColor: "#fff",
-              borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(123,31,162,0.15)",
-              p: 3,
-              mb: 4,
-            }}
-          >
-            <Typography variant="h5" sx={{ fontWeight: 700, color: "#7b1fa2", mb: 2 }}>
-              Order Summary
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            {cartItems.map(({ cartID, sasia, Product }) => (
-              <Box key={cartID} sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body1" noWrap sx={{ flex: 1 }}>
-                  {Product.emri} x {sasia}
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: "600", color: "#7b1fa2" }}>
-                  ${(sasia * Product.cmimi).toFixed(2)}
-                </Typography>
-              </Box>
-            ))}
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" sx={{ fontWeight: "700", color: "#7b1fa2" }}>
-              Total: ${totalPrice}
-            </Typography>
-          </Box>
-        </Box>
-      </Container>
-      <Box pt={6} px={1} mt={6}>
-        <DefaultFooter content={footerRoutes} />
-      </Box>
-    </>
+        <RadioGroup value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+          <FormControlLabel value="credit_card" control={<Radio />} label="Credit Card" />
+          <FormControlLabel value="paypal" control={<Radio />} label="PayPal" />
+          <FormControlLabel value="cash" control={<Radio />} label="Cash on Delivery" />
+        </RadioGroup>
+
+        <Stack spacing={2} mt={4}>
+          <Typography>Total to pay: ${totalPrice?.toFixed(2)}</Typography>
+          <Button variant="contained" color="primary" onClick={handlePayment} disabled={loading}>
+            {loading ? "Processing..." : "Confirm and Pay"}
+          </Button>
+        </Stack>
+      </Paper>
+    </Container>
   );
-};
-
-// ✅ PropTypes validation
-PaymentPage.propTypes = {
-  cartItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      cartID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-      sasia: PropTypes.number.isRequired,
-      Product: PropTypes.shape({
-        emri: PropTypes.string.isRequired,
-        cmimi: PropTypes.number.isRequired,
-      }).isRequired,
-    })
-  ).isRequired,
-  totalPrice: PropTypes.string.isRequired,
 };
 
 export default PaymentPage;

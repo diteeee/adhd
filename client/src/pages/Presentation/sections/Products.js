@@ -451,6 +451,7 @@ const Products = () => {
                 value={selectedShade}
                 onChange={(e) => setSelectedShade(e.target.value)}
                 label="Shade"
+                sx={{ height: 45, fontSize: "1rem" }}
               >
                 {selectedProductVariants.map((variant) => (
                   <MenuItem key={variant.productVariantID} value={variant.productVariantID}>

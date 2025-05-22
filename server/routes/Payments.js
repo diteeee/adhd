@@ -42,6 +42,45 @@ router.post("/", async (req, res) => {
     }
 });
 
+// POST /payment/confirm - To confirm the payment
+router.post("/confirm", async (req, res) => {
+    const { paymentID, status, transactionID } = req.body;  // Assuming status & paymentID are passed
+
+    try {
+        // 1. Find the payment by paymentID
+        const payment = await Payment.findByPk(paymentID);
+        if (!payment) {
+            return res.status(404).json({ error: "Payment not found." });
+        }
+
+        // 2. Update the payment status based on the confirmation status
+        const updatedStatus = status === "completed" ? "completed" : "failed";
+
+        // Update the payment status and optionally store the transaction ID
+        await payment.update({
+            status: updatedStatus,
+            data: { transactionID: transactionID || payment.data.transactionID }  // Update transactionID if provided
+        });
+
+        // 3. Update the order status based on payment success (optional, depending on your logic)
+        const order = await Order.findByPk(payment.paymentOrderID);
+        if (order) {
+            await order.update({ status: updatedStatus === "completed" ? "paid" : "payment_failed" });
+        }
+
+        // 4. Return a response with the updated payment and order status
+        res.status(200).json({
+            message: "Payment confirmed.",
+            paymentID: payment.paymentID,
+            status: updatedStatus,
+            transactionID: payment.data.transactionID
+        });
+    } catch (error) {
+        console.error("Payment confirmation error:", error);
+        res.status(500).json({ error: "Payment confirmation failed.", details: error });
+    }
+});
+
 // Update payment by ID
 router.put("/:paymentID", auth, checkRole(["admin"]), async (req, res) => {
     try {

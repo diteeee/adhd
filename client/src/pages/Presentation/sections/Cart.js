@@ -3,9 +3,7 @@ import { Container, Box, Typography, IconButton, TextField, Button, Stack } from
 import { Add, Remove } from "@mui/icons-material";
 import MKBox from "components/MKBox";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-import DefaultFooter from "examples/Footers/DefaultFooter";
 import routes from "routes";
-import footerRoutes from "footer.routes";
 import { useUser } from "context/UserContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +15,10 @@ const CartPage = () => {
   const token = localStorage.getItem("token");
 
   const handleProceedToCheckout = () => {
+    if (cartItems.length === 0) {
+      alert("Your cart is empty. Please add products before proceeding to checkout.");
+      return;
+    }
     navigate("/Payment", {
       state: {
         cartItems,
@@ -96,10 +98,16 @@ const CartPage = () => {
           >
             <Box flex={3}>
               {cartItems.length === 0 && (
-                <Typography variant="body1" sx={{ mt: 4 }}>
-                  Your cart is empty.
-                </Typography>
+                <Box sx={{ mt: 4, textAlign: "center" }}>
+                  <Typography variant="body1" mb={2}>
+                    Your cart is empty.
+                  </Typography>
+                  <Button variant="contained" color="white" onClick={() => navigate("/products")}>
+                    Browse Products
+                  </Button>
+                </Box>
               )}
+
               {cartItems.map(({ cartID, sasia, ProductVariant }) => {
                 const product = ProductVariant?.Product;
                 return (
@@ -243,11 +251,14 @@ const CartPage = () => {
                 variant="contained"
                 color="secondary"
                 onClick={handleProceedToCheckout}
+                disabled={cartItems.length === 0}
                 sx={{
                   mt: 2,
-                  backgroundColor: "#7b1fa2",
-                  color: "#ffffff",
-                  "&:hover": { backgroundColor: "#6a1b9a" },
+                  backgroundColor: cartItems.length === 0 ? "#ccc" : "#7b1fa2",
+                  color: cartItems.length === 0 ? "#666" : "#ffffff",
+                  "&:hover": {
+                    backgroundColor: cartItems.length === 0 ? "#ccc" : "#6a1b9a",
+                  },
                 }}
               >
                 Proceed to Checkout
@@ -256,7 +267,6 @@ const CartPage = () => {
           </Box>
         </Container>
       </MKBox>
-      <DefaultFooter content={footerRoutes} />
     </>
   );
 };

@@ -8,6 +8,8 @@ import { UserProvider, useUser } from "context/UserContext";
 import routes from "routes";
 import Notification from "./Notifications";
 import PaymentPage from "./pages/Presentation/sections/Payment";
+import Products from "./pages/Presentation/sections/Products";
+import SuccessPage from "pages/Presentation/sections/SuccessPage";
 
 function AppContent() {
   const { user } = useUser();
@@ -50,6 +52,8 @@ function AppContent() {
         <Route path="/presentation" element={<Presentation />} />
         <Route path="*" element={<Navigate to="/presentation" />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/success" element={<SuccessPage />} />
       </Routes>
     </>
   );

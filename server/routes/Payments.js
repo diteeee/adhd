@@ -3,7 +3,8 @@ const router = express.Router();
 const { Payment, Order } = require("../models");
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/permission'); 
-
+const Stripe = require("stripe");
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 // Get all payment
 router.get("/", async (req, res) => {
     try {
@@ -42,43 +43,51 @@ router.post("/", async (req, res) => {
     }
 });
 
-// POST /payment/confirm - To confirm the payment
+//confirm payment
 router.post("/confirm", async (req, res) => {
-    const { paymentID, status, transactionID } = req.body;  // Assuming status & paymentID are passed
+  const { sessionId } = req.body;
 
-    try {
-        // 1. Find the payment by paymentID
-        const payment = await Payment.findByPk(paymentID);
-        if (!payment) {
-            return res.status(404).json({ error: "Payment not found." });
-        }
+  if (!sessionId) {
+    return res.status(400).json({ error: "sessionId is required." });
+  }
 
-        // 2. Update the payment status based on the confirmation status
-        const updatedStatus = status === "completed" ? "completed" : "failed";
+  try {
+    // Retrieve the Stripe checkout session by ID
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-        // Update the payment status and optionally store the transaction ID
-        await payment.update({
-            status: updatedStatus,
-            data: { transactionID: transactionID || payment.data.transactionID }  // Update transactionID if provided
-        });
+    if (session.payment_status === "paid") {
+      // Extract metadata
+      const { orderID, paymentID, userID } = session.metadata;
 
-        // 3. Update the order status based on payment success (optional, depending on your logic)
-        const order = await Order.findByPk(payment.paymentOrderID);
-        if (order) {
-            await order.update({ status: updatedStatus === "completed" ? "paid" : "payment_failed" });
-        }
+      // Find payment record in DB
+      const payment = await Payment.findByPk(paymentID);
+      if (!payment) return res.status(404).json({ error: "Payment not found." });
 
-        // 4. Return a response with the updated payment and order status
-        res.status(200).json({
-            message: "Payment confirmed.",
-            paymentID: payment.paymentID,
-            status: updatedStatus,
-            transactionID: payment.data.transactionID
-        });
-    } catch (error) {
-        console.error("Payment confirmation error:", error);
-        res.status(500).json({ error: "Payment confirmation failed.", details: error });
+      // Update payment status and transaction ID
+      await payment.update({
+        status: "completed",
+        data: { transactionID: session.payment_intent },
+      });
+
+      // Update order status
+      const order = await Order.findByPk(orderID);
+      if (order) await order.update({ status: "paid" });
+
+      // Clear the user's cart now that payment succeeded
+      await Cart.destroy({ where: { cartUserID: userID } });
+
+      return res.json({
+        message: "Payment confirmed successfully. Order paid and cart cleared.",
+        orderID,
+        paymentID,
+      });
+    } else {
+      return res.status(400).json({ error: "Payment not completed." });
     }
+  } catch (error) {
+    console.error("Payment confirmation error:", error);
+    res.status(500).json({ error: "Failed to confirm payment.", details: error.message });
+  }
 });
 
 // Update payment by ID

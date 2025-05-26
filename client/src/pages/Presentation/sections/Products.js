@@ -21,9 +21,7 @@ import {
 } from "@mui/material";
 import MKBox from "components/MKBox";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-import DefaultFooter from "examples/Footers/DefaultFooter";
 import routes from "routes";
-import footerRoutes from "footer.routes";
 import { useUser } from "context/UserContext";
 import axios from "axios";
 
@@ -486,8 +484,6 @@ const Products = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <DefaultFooter content={footerRoutes} />
     </>
   );
 };

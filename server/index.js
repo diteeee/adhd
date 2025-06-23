@@ -3,7 +3,6 @@ const express = require("express");
 const app = express();
 const cors = require('cors');
 const mongoose = require("mongoose");
-const path = require('path');
 const http = require("http");
 const { Server } = require("socket.io");
 
@@ -11,7 +10,6 @@ app.use(express.json());
 app.use(cors());
 const jwt = require("jsonwebtoken");
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const db = require("./models");
 

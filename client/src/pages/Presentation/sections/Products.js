@@ -31,7 +31,8 @@ const initialProductState = {
   firma: "",
   cmimi: "",
   productCategoryID: "",
-  img: null,
+  imageURL: "",
+  variants: [], // Array to hold variants
 };
 
 const Products = () => {
@@ -52,7 +53,6 @@ const Products = () => {
   const [loadingVariants, setLoadingVariants] = useState(false);
   const [currentProductForShade, setCurrentProductForShade] = useState(null);
 
-  console.log(currentProductForShade);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -79,6 +79,56 @@ const Products = () => {
         console.error("Error fetching products:", err);
         setLoading(false);
       });
+  };
+
+  console.log(currentProductForShade);
+
+  const handleAddToCartClick = async (product) => {
+    if (!user) {
+      alert("Please log in to add products to your cart.");
+      return;
+    }
+    setCurrentProductForShade(product);
+    setLoadingVariants(true);
+    try {
+      const res = await axios.get(
+        `http://localhost:3001/productVariants/products/${product.productID}`
+      );
+      setSelectedProductVariants(res.data);
+      setSelectedShade("");
+      setShadeDialogOpen(true);
+    } catch (err) {
+      console.error("Error fetching product variants:", err);
+      alert("Failed to load product variants.");
+    } finally {
+      setLoadingVariants(false);
+    }
+  };
+
+  const handleConfirmShade = async () => {
+    if (!selectedShade) {
+      alert("Please select a shade.");
+      return;
+    }
+    try {
+      const response = await axios.post("http://localhost:3001/carts", {
+        sasia: 1,
+        cartUserID: user.userID,
+        cartProductVariantID: selectedShade,
+      });
+      alert("Product added to cart!");
+      setShadeDialogOpen(false);
+      console.log(response);
+    } catch (error) {
+      console.error("Error adding variant to cart:", error);
+      alert("Failed to add product variant to cart.");
+    }
+  };
+
+  const handleShadeDialogClose = () => {
+    setShadeDialogOpen(false);
+    setSelectedProductVariants([]);
+    setSelectedShade("");
   };
 
   const handleCategoryChange = (event) => {
@@ -108,17 +158,48 @@ const Products = () => {
     }
   };
 
-  const handleEdit = (product) => {
-    setEditingProduct(product);
-    setProductForm({
-      emri: product.emri,
-      pershkrimi: product.pershkrimi,
-      firma: product.firma,
-      cmimi: product.cmimi,
-      productCategoryID: product.productCategoryID,
-      img: null,
-    });
-    setOpen(true);
+  const handleEdit = async (product) => {
+    try {
+      const { data: variants = [] } = await axios.get(
+        `http://localhost:3001/productVariants/products/${product.productID}`
+      );
+      setEditingProduct(product);
+      setProductForm({
+        ...product,
+        variants: variants.map((variant) => ({
+          shade: variant.shade,
+          numri: variant.numri,
+          inStock: variant.inStock,
+        })),
+      });
+      setOpen(true);
+    } catch (err) {
+      console.error("Error fetching variants:", err);
+      setProductForm({
+        ...product,
+        variants: [], // Fallback to an empty array if variants fetch fails
+      });
+      setOpen(true);
+    }
+  };
+
+  const handleVariantChange = (name, value, index) => {
+    const updatedVariants = [...productForm.variants];
+    updatedVariants[index][name] = value;
+    setProductForm((prev) => ({ ...prev, variants: updatedVariants }));
+  };
+
+  const addVariant = () => {
+    setProductForm((prev) => ({
+      ...prev,
+      variants: [...prev.variants, { shade: "", numri: "", inStock: "" }],
+    }));
+  };
+
+  const removeVariant = (index) => {
+    const updatedVariants = [...productForm.variants];
+    updatedVariants.splice(index, 1);
+    setProductForm((prev) => ({ ...prev, variants: updatedVariants }));
   };
 
   const handleAddProduct = () => {
@@ -137,88 +218,23 @@ const Products = () => {
     setProductForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e) => {
-    setProductForm((prev) => ({ ...prev, img: e.target.files[0] }));
-  };
-
   const handleSubmit = async () => {
-    const formData = new FormData();
-    Object.entries(productForm).forEach(([key, value]) => {
-      if (value !== null) formData.append(key, value);
-    });
-
     try {
+      const payload = { ...productForm };
       if (editingProduct) {
-        await axios.put(`http://localhost:3001/products/${editingProduct.productID}`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
+        await axios.put(`http://localhost:3001/products/${editingProduct.productID}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axios.post(`http://localhost:3001/products`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
+        await axios.post(`http://localhost:3001/products`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
-
       handleClose();
       fetchProducts();
     } catch (err) {
       console.error("Error submitting product:", err);
     }
-  };
-
-  // New: open shade selection dialog when Add to Cart is clicked
-  const handleAddToCartClick = async (product) => {
-    if (!user) {
-      alert("Please log in to add products to your cart.");
-      return;
-    }
-    setCurrentProductForShade(product);
-    setLoadingVariants(true);
-    try {
-      const res = await axios.get(
-        `http://localhost:3001/productVariants/products/${product.productID}`
-      );
-      setSelectedProductVariants(res.data);
-      setSelectedShade("");
-      setShadeDialogOpen(true);
-    } catch (err) {
-      console.error("Error fetching product variants:", err);
-      alert("Failed to load product variants.");
-    } finally {
-      setLoadingVariants(false);
-    }
-  };
-
-  // Confirm shade and add variant to cart
-  const handleConfirmShade = async () => {
-    if (!selectedShade) {
-      alert("Please select a shade.");
-      return;
-    }
-    try {
-      const response = await axios.post("http://localhost:3001/carts", {
-        sasia: 1,
-        cartUserID: user.userID,
-        cartProductVariantID: selectedShade,
-      });
-      alert("Product variant added to cart!");
-      setShadeDialogOpen(false);
-      console.log(response);
-    } catch (error) {
-      console.error("Error adding variant to cart:", error);
-      alert("Failed to add product variant to cart.");
-    }
-  };
-
-  const handleShadeDialogClose = () => {
-    setShadeDialogOpen(false);
-    setSelectedProductVariants([]);
-    setSelectedShade("");
   };
 
   return (
@@ -273,8 +289,11 @@ const Products = () => {
                     <CardMedia
                       component="img"
                       alt={product.emri}
-                      height="140"
-                      image={`http://localhost:3001/${product.imageURL}`}
+                      image={product.imageURL}
+                      sx={{
+                        height: 300, // Adjusted height for better visibility
+                        objectFit: "cover", // Ensures the image fills the card properly
+                      }}
                     />
                     <CardContent>
                       <Typography gutterBottom variant="h5" component="div">
@@ -289,7 +308,6 @@ const Products = () => {
                       <Typography variant="body2" color="text.secondary">
                         ${product.cmimi}
                       </Typography>
-
                       {user?.role === "admin" && (
                         <Stack direction="row" spacing={1} mt={2}>
                           <Button
@@ -388,7 +406,9 @@ const Products = () => {
               value={productForm.productCategoryID}
               onChange={handleFormChange}
               label="Category"
+              sx={{ height: 45 }}
             >
+              <MenuItem value="">Select Category</MenuItem>
               {categories.map((cat) => (
                 <MenuItem key={cat.categoryID} value={cat.categoryID}>
                   {cat.emri}
@@ -396,18 +416,50 @@ const Products = () => {
               ))}
             </Select>
           </FormControl>
-          <Button
-            variant="outlined"
-            component="label"
-            sx={{
-              mt: 2,
-              color: "#7b1fa2",
-              borderColor: "#7b1fa2",
-              "&:hover": { borderColor: "#6a1b9a", color: "#6a1b9a" },
-            }}
-          >
-            Upload Image
-            <input type="file" hidden onChange={handleFileChange} />
+          <TextField
+            margin="dense"
+            label="Image URL"
+            name="imageURL"
+            fullWidth
+            value={productForm.imageURL}
+            onChange={handleFormChange}
+          />
+          <Typography variant="h6" mt={2}>
+            Variants
+          </Typography>
+          {Array.isArray(productForm.variants) &&
+            productForm.variants.map((variant, index) => (
+              <Stack key={index} direction="row" spacing={2} alignItems="center" mt={1}>
+                <TextField
+                  label="Shade"
+                  name="shade"
+                  value={variant.shade}
+                  onChange={(e) => handleVariantChange(e.target.name, e.target.value, index)}
+                  size="small"
+                />
+                <TextField
+                  label="Numri"
+                  name="numri"
+                  type="number"
+                  value={variant.numri}
+                  onChange={(e) => handleVariantChange(e.target.name, e.target.value, index)}
+                  size="small"
+                />
+                <TextField
+                  label="In Stock"
+                  name="inStock"
+                  type="number"
+                  value={variant.inStock}
+                  onChange={(e) => handleVariantChange(e.target.name, e.target.value, index)}
+                  size="small"
+                />
+                <Button color="error" onClick={() => removeVariant(index)} size="small">
+                  Remove
+                </Button>
+              </Stack>
+            ))}
+          <Button onClick={addVariant} sx={{ mt: 1 }} variant="outlined">
+            Add Variant
           </Button>
         </DialogContent>
         <DialogActions>
@@ -433,8 +485,6 @@ const Products = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Shade Selection Dialog */}
       <Dialog open={shadeDialogOpen} onClose={handleShadeDialogClose} maxWidth="xs" fullWidth>
         <DialogTitle>Select a Shade</DialogTitle>
         <DialogContent>

@@ -20,7 +20,6 @@ router.post('/', auth, checkRole(["admin"]), async (req, res) => {
         await notification.save();
 
         io.to(notificationUserID).emit("newNotification", notification);
-        console.log("Emitting notification to user room:", notificationUserID, notification);
         res.status(201).json(notification);
     } catch (error) {
         console.error("Error creating notification:", error);

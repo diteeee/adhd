@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "assets/theme";
@@ -10,12 +10,16 @@ import Notification from "./Notifications";
 import PaymentPage from "./pages/Presentation/sections/Payment";
 import Products from "./pages/Presentation/sections/Products";
 import SuccessPage from "pages/Presentation/sections/SuccessPage";
+import Cart from "pages/Presentation/sections/Cart";
+import FloatingCart from "./components/FloatingCart";
 
 function AppContent() {
   const { user } = useUser();
   const { pathname } = useLocation();
-  console.log("User from context:", user);
+  const navigate = useNavigate();
 
+  console.log("user from context: ", user);
+  // Scroll to top on route change
   useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
@@ -37,16 +41,19 @@ function AppContent() {
         return;
       }
 
-      console.log(`Adding route ${route.route}`);
       return route.route
         ? [<Route path={route.route} element={route.component} key={route.key} />]
         : [];
     });
 
-  console.log(getRoutes(routes));
+  const handleNavigateToCart = () => {
+    navigate("/cart"); // Ensure this matches your cart route
+  };
+
   return (
     <>
       <Notification userId={user?.userID} />
+      <FloatingCart navigateTo={handleNavigateToCart} />
       <Routes>
         {getRoutes(routes)}
         <Route path="/presentation" element={<Presentation />} />
@@ -54,6 +61,7 @@ function AppContent() {
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/products" element={<Products />} />
         <Route path="/success" element={<SuccessPage />} />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
     </>
   );

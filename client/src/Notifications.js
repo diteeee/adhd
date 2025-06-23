@@ -36,7 +36,7 @@ const Notifications = ({ userId }) => {
           open={true}
           autoHideDuration={8000}
           onClose={() => handleClose(index)}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         >
           <Alert onClose={() => handleClose(index)} severity="info" sx={{ width: "100%" }}>
             {notif.mesazhi ? notif.mesazhi : "No message"}

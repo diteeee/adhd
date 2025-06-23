@@ -61,21 +61,33 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
 
   useEffect(() => {
     const newRoutes = cloneDeep(routes);
-    if (user === null || !user) {
+
+    // Filter sign in/out links based on user presence
+    if (!user) {
       newRoutes[0].collapse[1].collapse = newRoutes[0].collapse[1].collapse.filter(
         (item) => item.name !== "log out"
       );
     } else {
       newRoutes[0].collapse[1].collapse = newRoutes[0].collapse[1].collapse.filter(
-        (item) => item.name !== "sign in"
+        (item) => item.name !== "sign in" && item.name !== "sign up"
       );
-      newRoutes[0].collapse[1].collapse = newRoutes[0].collapse[1].collapse.filter(
-        (item) => item.name !== "sign up"
-      );
+
+      // If user is admin, add Dashboard route dynamically
+      if (user.role === "admin") {
+        const dashboardRoute = {
+          name: "Dashboard",
+          route: `http://localhost:3006/dashboard?token=${localStorage.getItem("token")}`,
+          icon: <Icon>dashboard</Icon>, // or any icon you want to use
+          external: true, // mark as external link if using full URL
+          // If you want it to open in a new tab:
+          target: "_blank",
+        };
+
+        // Add dashboard route to the routes array (for example, at the start or end)
+        newRoutes[0].collapse[1].collapse.unshift(dashboardRoute);
+      }
     }
-    console.log("=======================");
-    console.log(routes);
-    console.log("User12344:", user);
+
     setFormattedRoutes(newRoutes);
   }, [user]);
 

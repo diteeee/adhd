@@ -3,6 +3,7 @@ import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import { Card, CardMedia, CardContent } from "@mui/material";
+import { useNavigate } from "react-router-dom"; // <-- Import this
 
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
@@ -17,6 +18,7 @@ import bgImage from "assets/images/bg-presentation.jpg";
 
 function Presentation() {
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate(); // <-- Initialize navigate
 
   useEffect(() => {
     fetch("http://localhost:3001/products")
@@ -71,12 +73,12 @@ function Presentation() {
             </MKTypography>
             <Grid container spacing={2} justifyContent="center" mt={3}>
               <Grid item>
-                <Button variant="contained" color="secondary" size="large">
-                  Shop Now
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button variant="outlined" color="secondary" size="large">
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="large"
+                  onClick={() => navigate("/products")} // <-- Add this
+                >
                   Explore Collections
                 </Button>
               </Grid>

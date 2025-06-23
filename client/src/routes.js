@@ -44,6 +44,7 @@ import AboutUs from "layouts/pages/landing-pages/about-us";
 import ContactUs from "layouts/pages/landing-pages/contact-us";
 import Author from "layouts/pages/landing-pages/author";
 import SignIn from "layouts/pages/authentication/sign-in";
+import SignUp from "layouts/pages/authentication/sign-in/sign-up";
 import SignOutPage from "pages/LandingPages/SignOut";
 import Products from "pages/Presentation/sections/Products";
 
@@ -89,12 +90,12 @@ const routes = [
             component: <SignIn />,
             key: "signin",
           },
-          // {
-          //   name: "sign up",
-          //   route: "/pages/authentication/sign-in/sign-up",
-          //   component: <SignUp />,
-          //   key: "signup",
-          // },
+          {
+            name: "sign up",
+            route: "/pages/authentication/sign-in/sign-up",
+            component: <SignUp />,
+            key: "signup",
+          },
         ],
       },
     ],

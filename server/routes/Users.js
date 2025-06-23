@@ -29,13 +29,21 @@ router.get("/:userID", async (req, res) => {
 
 // Create new user
 router.post("/", async (req, res) => {
-    try {
-        const { emri, mbiemri, nrTel, email, password, role } = req.body;
-        const newUser = await User.create({ emri, mbiemri, nrTel, email, password, role });
-        res.status(201).json(newUser);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to create user." });
+  try {
+    const { emri, mbiemri, nrTel, email, password, role } = req.body;
+
+    // Check if user with the email already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already in use." });
     }
+
+    const newUser = await User.create({ emri, mbiemri, nrTel, email, password, role });
+    res.status(201).json(newUser);
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ error: "Failed to create user." });
+  }
 });
 
 // Update user by ID

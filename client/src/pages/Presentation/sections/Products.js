@@ -55,6 +55,7 @@ const Products = () => {
   const [loadingVariants, setLoadingVariants] = useState(false);
   const [currentProductForShade, setCurrentProductForShade] = useState(null);
   const [brands, setBrands] = useState([]);
+  const [selectedBrand, setSelectedBrand] = useState("");
 
   const token = localStorage.getItem("token");
 
@@ -147,14 +148,25 @@ const Products = () => {
     const categoryId = event.target.value;
     setSelectedCategory(categoryId);
 
-    const url = categoryId
-      ? `http://localhost:3001/products/category/${categoryId}`
-      : "http://localhost:3001/products";
+    fetchFilteredProducts(categoryId, selectedBrand);
+  };
+
+  const handleBrandChange = (event) => {
+    const brandId = event.target.value;
+    setSelectedBrand(brandId);
+
+    fetchFilteredProducts(selectedCategory, brandId);
+  };
+
+  const fetchFilteredProducts = (category, brand) => {
+    const params = new URLSearchParams();
+    if (category) params.append("category", category);
+    if (brand) params.append("brand", brand);
 
     axios
-      .get(url)
+      .get(`http://localhost:3001/products?${params.toString()}`)
       .then((res) => setProducts(res.data))
-      .catch((err) => console.error("Error filtering products:", err));
+      .catch((err) => console.error("Error fetching filtered products:", err));
   };
 
   const handleDelete = async (productID) => {
@@ -280,23 +292,56 @@ const Products = () => {
             </Button>
           )}
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              label="Category"
-              sx={{ height: 45, fontSize: "1rem" }}
-            >
-              <MenuItem value="">All Categories</MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category.categoryID} value={category.categoryID}>
-                  {category.emri}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          {/* Filter Navbar */}
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              background: "#f4f4f4",
+              padding: "10px 20px",
+              borderRadius: "8px",
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+              marginBottom: "20px",
+              marginTop: "20px",
+              alignItems: "center",
+            }}
+          >
+            <FormControl fullWidth sx={{ maxWidth: 200 }}>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                label="Category"
+                sx={{ height: 45, fontSize: "1rem" }}
+              >
+                <MenuItem value="">All Categories</MenuItem>
+                {categories.map((category) => (
+                  <MenuItem key={category.categoryID} value={category.categoryID}>
+                    {category.emri}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
+            <FormControl fullWidth sx={{ maxWidth: 200 }}>
+              <InputLabel>Brand</InputLabel>
+              <Select
+                value={selectedBrand}
+                onChange={handleBrandChange}
+                label="Brand"
+                sx={{ height: 45, fontSize: "1rem" }}
+              >
+                <MenuItem value="">All Brands</MenuItem>
+                {brands.map((brand) => (
+                  <MenuItem key={brand.brandID} value={brand.brandID}>
+                    {brand.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+
+          {/* Product Grid */}
           <Grid container spacing={3}>
             {loading ? (
               <Grid item xs={12} textAlign="center">
@@ -314,8 +359,8 @@ const Products = () => {
                       alt={product.emri}
                       image={product.imageURL}
                       sx={{
-                        height: 300, // Adjusted height for better visibility
-                        objectFit: "cover", // Ensures the image fills the card properly
+                        height: 300,
+                        objectFit: "cover",
                       }}
                     />
                     <CardContent>

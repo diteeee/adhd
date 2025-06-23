@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -10,6 +10,8 @@ import {
   Paper,
   Stack,
   Alert,
+  Divider,
+  Box,
 } from "@mui/material";
 import axios from "axios";
 import { useUser } from "context/UserContext";
@@ -24,6 +26,7 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const navigate = useNavigate();
 
   const handlePayment = async () => {
     setErrorMsg("");
@@ -31,7 +34,6 @@ const PaymentPage = () => {
     setLoading(true);
 
     try {
-      // 1. Create Order and Payment in DB
       const checkoutRes = await axios.post(
         "http://localhost:3001/orders/checkout",
         {
@@ -46,10 +48,11 @@ const PaymentPage = () => {
       const { orderID, paymentID } = checkoutRes.data;
 
       if (paymentMethod === "cash") {
-        // For Cash on Delivery, no Stripe session needed
         setSuccessMsg("Order placed successfully! Payment will be collected on delivery.");
+        setTimeout(() => {
+          navigate(`/success?orderID=${orderID}`);
+        }, 1000);
       } else {
-        // For card payments, create Stripe session and redirect
         const stripeRes = await axios.post(
           "http://localhost:3001/orders/create-checkout-session",
           {
@@ -72,40 +75,92 @@ const PaymentPage = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 10 }}>
-      <Paper sx={{ p: 4, boxShadow: 3 }}>
-        <Typography variant="h5" mb={2}>
-          Review your order
+    <Container maxWidth="md" sx={{ mt: 8 }}>
+      <Paper sx={{ p: 4, boxShadow: 4, borderRadius: 2 }}>
+        <Typography variant="h4" fontWeight="bold" textAlign="center" mb={4}>
+          Secure Checkout
+        </Typography>
+
+        <Divider sx={{ mb: 3 }} />
+
+        <Typography variant="h6" fontWeight="medium" mb={2}>
+          Order Summary
         </Typography>
 
         {cartItems?.length > 0 ? (
-          <ul>
+          <Box sx={{ mb: 3 }}>
             {cartItems.map((item) => (
-              <li key={item.cartID} style={{ marginBottom: 6 }}>
-                <strong>{item.ProductVariant?.Product?.emri}</strong> × {item.sasia}
-              </li>
+              <Stack
+                key={item.cartID}
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{ mb: 1 }}
+              >
+                <Typography variant="body1">{item.ProductVariant?.Product?.emri}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  × {item.sasia}
+                </Typography>
+              </Stack>
             ))}
-          </ul>
+          </Box>
         ) : (
           <Typography>No items in cart</Typography>
         )}
 
-        <Typography variant="h6" mt={3} gutterBottom>
-          Total: <strong>${totalPrice?.toFixed(2)}</strong>
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          textAlign="right"
+          sx={{ borderTop: "1px solid #ddd", pt: 2, mt: 2 }}
+        >
+          Total: ${totalPrice?.toFixed(2)}
         </Typography>
 
-        <Typography variant="h6" mt={4} gutterBottom>
-          Select Payment Method
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="h6" fontWeight="medium" mb={2}>
+          Payment Method
         </Typography>
 
         <RadioGroup
           value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value)}
           row
-          sx={{ mb: 3 }}
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mb: 3,
+          }}
         >
-          <FormControlLabel value="credit_card" control={<Radio />} label="Credit Card" />
-          <FormControlLabel value="cash" control={<Radio />} label="Cash on Delivery" />
+          <FormControlLabel
+            value="credit_card"
+            control={<Radio />}
+            label={
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="body1" fontWeight="medium">
+                  Credit Card
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Visa, MasterCard, AmEx
+                </Typography>
+              </Box>
+            }
+          />
+          <FormControlLabel
+            value="cash"
+            control={<Radio />}
+            label={
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="body1" fontWeight="medium">
+                  Cash on Delivery
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Pay at your doorstep
+                </Typography>
+              </Box>
+            }
+          />
         </RadioGroup>
 
         {errorMsg && (
@@ -120,12 +175,20 @@ const PaymentPage = () => {
           </Alert>
         )}
 
-        <Stack direction="row" justifyContent="flex-end">
+        <Stack direction="row" justifyContent="center">
           <Button
             variant="contained"
             color="primary"
+            size="large"
             onClick={handlePayment}
             disabled={loading || cartItems?.length === 0}
+            sx={{
+              borderRadius: 20,
+              px: 5,
+              py: 1.5,
+              fontSize: "1rem",
+              textTransform: "capitalize",
+            }}
           >
             {loading ? "Processing..." : paymentMethod === "cash" ? "Place Order" : "Pay Now"}
           </Button>

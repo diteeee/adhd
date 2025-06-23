@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
-import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
+import { Card, CardMedia, CardContent } from "@mui/material";
 
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
@@ -13,9 +13,7 @@ import DefaultFooter from "examples/Footers/DefaultFooter";
 import routes from "routes";
 import footerRoutes from "footer.routes";
 
-import bgImage from "assets/images/makeup-bg.jpeg";
-import lipstickImg from "assets/images/Lipstick.jpg";
-import foundationImg from "assets/images/Foundation.png";
+import bgImage from "assets/images/bg-presentation.jpg";
 
 function Presentation() {
   const [products, setProducts] = useState([]);
@@ -35,7 +33,7 @@ function Presentation() {
         minHeight="75vh"
         width="100%"
         sx={{
-          backgroundImage: `linear-gradient(rgba(255, 192, 203, 0.7), rgba(255, 105, 180, 0.7)), url(${bgImage})`,
+          backgroundImage: `url(${bgImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           display: "grid",
@@ -73,7 +71,7 @@ function Presentation() {
             </MKTypography>
             <Grid container spacing={2} justifyContent="center" mt={3}>
               <Grid item>
-                <Button variant="contained" color="primary" size="large">
+                <Button variant="contained" color="secondary" size="large">
                   Shop Now
                 </Button>
               </Grid>
@@ -87,50 +85,6 @@ function Presentation() {
         </Container>
       </MKBox>
 
-      {/* Categories Section */}
-      <MKBox pt={6} pb={4}>
-        <Container>
-          <MKTypography variant="h3" mb={4} textAlign="center">
-            Explore by Categories
-          </MKTypography>
-          <Grid container spacing={4}>
-            <Grid item xs={12} sm={6} md={4}>
-              <Card>
-                <MKBox
-                  component="img"
-                  src={lipstickImg}
-                  alt="Lipsticks"
-                  width="100%"
-                  height="200px"
-                />
-                <MKBox p={2}>
-                  <MKTypography variant="h5" textAlign="center">
-                    Lipsticks
-                  </MKTypography>
-                </MKBox>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Card>
-                <MKBox
-                  component="img"
-                  src={foundationImg}
-                  alt="Foundations"
-                  width="100%"
-                  height="200px"
-                />
-                <MKBox p={2}>
-                  <MKTypography variant="h5" textAlign="center">
-                    Foundations
-                  </MKTypography>
-                </MKBox>
-              </Card>
-            </Grid>
-            {/* Add more categories as needed */}
-          </Grid>
-        </Container>
-      </MKBox>
-
       {/* Featured Products */}
       <MKBox pt={6}>
         <Container>
@@ -139,17 +93,18 @@ function Presentation() {
           </MKTypography>
           <Grid container spacing={4}>
             {products.map((product) => (
-              <Grid item xs={12} sm={6} md={4} key={product.id}>
+              <Grid item xs={12} sm={6} md={4} key={product.productID}>
                 <Card>
-                  <MKBox
+                  <CardMedia
                     component="img"
-                    src={`http://localhost:3001/${product.imageURL}`}
+                    image={product.imageURL}
                     alt={product.emri}
-                    width="100%"
-                    height="250px"
-                    sx={{ objectFit: "cover" }}
+                    sx={{
+                      height: 300, // Matches the height used in the Products page
+                      objectFit: "cover", // Ensures the image fills the card properly
+                    }}
                   />
-                  <MKBox p={2}>
+                  <CardContent>
                     <MKTypography variant="h5">{product.emri}</MKTypography>
                     <MKTypography variant="body2" color="text.secondary">
                       {product.pershkrimi}
@@ -157,7 +112,7 @@ function Presentation() {
                     <MKTypography variant="subtitle1" mt={1}>
                       ${product.cmimi}
                     </MKTypography>
-                  </MKBox>
+                  </CardContent>
                 </Card>
               </Grid>
             ))}

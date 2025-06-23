@@ -301,7 +301,11 @@ const Products = () => {
                       </Typography>
                       {user?.role === "admin" && (
                         <Stack direction="row" spacing={1} mt={2}>
-                          <Button size="small" onClick={() => handleEdit(product)}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => handleEdit(product)}
+                          >
                             Edit
                           </Button>
                           <Button
@@ -435,12 +439,14 @@ const Products = () => {
                 </Button>
               </Stack>
             ))}
-          <Button onClick={addVariant} sx={{ mt: 1 }} variant="outlined">
+          <Button onClick={addVariant} sx={{ mt: 1 }} variant="contained">
             Add Variant
           </Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose} color="error">
+            Cancel
+          </Button>
           <Button onClick={handleSubmit} variant="contained">
             {editingProduct ? "Update" : "Add"}
           </Button>

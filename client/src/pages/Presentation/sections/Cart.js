@@ -125,7 +125,7 @@ const CartPage = () => {
                   >
                     <Box
                       component="img"
-                      src={`http://localhost:3001/${product?.imageURL}`}
+                      src={product.imageURL}
                       alt={product?.emri}
                       sx={{ width: 100, height: 80, objectFit: "cover", borderRadius: 1, mr: 2 }}
                     />
@@ -133,23 +133,16 @@ const CartPage = () => {
                       <Typography variant="h6" sx={{ color: "#6a1b9a", fontWeight: "600" }}>
                         {product?.emri}
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ fontStyle: "italic", color: "#555", mb: 0.5 }}
-                        noWrap
-                      >
+                      <Typography variant="body2" sx={{ color: "#555", mb: 0.5 }} noWrap>
                         {product?.pershkrimi}
                       </Typography>
 
                       {/* SHADE DISPLAY HERE */}
-                      <Typography
-                        variant="body2"
-                        sx={{ fontStyle: "italic", color: "#8e24aa", mb: 0.5 }}
-                      >
+                      <Typography variant="body2" sx={{ mb: 0.5 }}>
                         Shade: {ProductVariant?.shade || "N/A"}
                       </Typography>
 
-                      <Typography variant="subtitle2" sx={{ color: "#7b1fa2" }}>
+                      <Typography variant="subtitle2" sx={{ color: "#000000", fontWeight: "bold" }}>
                         Price: ${Number(product?.cmimi || 0).toFixed(2)}
                       </Typography>
                     </Box>
@@ -159,8 +152,8 @@ const CartPage = () => {
                         size="small"
                         onClick={() => handleQuantityChange(cartID, Number(sasia) - 1)}
                         sx={{
-                          color: "#7b1fa2",
-                          border: "1px solid #7b1fa2",
+                          color: "#c597d6",
+                          border: "1px solid #c597d6",
                           borderRadius: 1,
                         }}
                       >
@@ -190,8 +183,8 @@ const CartPage = () => {
                         size="small"
                         onClick={() => handleQuantityChange(cartID, Number(sasia) + 1)}
                         sx={{
-                          color: "#7b1fa2",
-                          border: "1px solid #7b1fa2",
+                          color: "#c597d6",
+                          border: "1px solid #c597d6",
                           borderRadius: 1,
                         }}
                       >
@@ -249,16 +242,10 @@ const CartPage = () => {
               <Button
                 fullWidth
                 variant="contained"
-                color="secondary"
                 onClick={handleProceedToCheckout}
                 disabled={cartItems.length === 0}
                 sx={{
                   mt: 2,
-                  backgroundColor: cartItems.length === 0 ? "#ccc" : "#7b1fa2",
-                  color: cartItems.length === 0 ? "#666" : "#ffffff",
-                  "&:hover": {
-                    backgroundColor: cartItems.length === 0 ? "#ccc" : "#6a1b9a",
-                  },
                 }}
               >
                 Proceed to Checkout

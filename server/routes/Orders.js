@@ -18,15 +18,29 @@ router.get("/", async (req, res) => {
 
 // Get order by ID
 router.get("/:orderID", async (req, res) => {
-    try {
-        const order = await Order.findByPk(req.params.orderID, { include: User });
-        if (!order) {
-            return res.status(404).json({ error: "Order not found." });
-        }
-        res.json(order);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve order." });
+  try {
+    const order = await Order.findByPk(req.params.orderID, {
+      include: [
+        User,
+        {
+          model: OrderItem,
+          include: [
+            {
+              model: ProductVariant,
+              include: [Product],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found." });
     }
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve order." });
+  }
 });
 
 // Create new order
@@ -165,7 +179,8 @@ router.post("/create-checkout-session", async (req, res) => {
       payment_method_types: ["card"],
       mode: "payment",
       line_items: lineItems,
-      success_url: 'http://localhost:3000/success',
+      // Pass orderID as query param in success URL:
+      success_url: `http://localhost:3000/success?orderID=${order.orderID}`,
       cancel_url: 'http://localhost:3000/cart',
       metadata: {
         orderID: order.orderID,

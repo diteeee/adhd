@@ -25,20 +25,41 @@ export default {
   },
   styleOverrides: {
     root: { ...root },
-    contained: { ...contained.base },
+    contained: {
+      ...contained.base,
+      color: "#ffffff", // Ensures white text for all contained buttons
+    },
     containedSizeSmall: { ...contained.small },
     containedSizeLarge: { ...contained.large },
-    containedPrimary: { ...contained.primary },
-    containedSecondary: { ...contained.secondary },
+    containedPrimary: {
+      ...contained.primary,
+      color: "#ffffff", // White text for primary contained buttons
+    },
+    containedSecondary: {
+      ...contained.secondary,
+      color: "#ffffff", // White text for secondary contained buttons
+    },
     outlined: { ...outlined.base },
     outlinedSizeSmall: { ...outlined.small },
     outlinedSizeLarge: { ...outlined.large },
-    outlinedPrimary: { ...outlined.primary },
-    outlinedSecondary: { ...outlined.secondary },
+    outlinedPrimary: {
+      ...outlined.primary,
+      color: "#ffffff", // White text for primary outlined buttons
+    },
+    outlinedSecondary: {
+      ...outlined.secondary,
+      color: "#ffffff", // White text for secondary outlined buttons
+    },
     text: { ...text.base },
     textSizeSmall: { ...text.small },
     textSizeLarge: { ...text.large },
-    textPrimary: { ...text.primary },
-    textSecondary: { ...text.secondary },
+    textPrimary: {
+      ...text.primary,
+      color: "#ffffff", // White text for primary text buttons
+    },
+    textSecondary: {
+      ...text.secondary,
+      color: "#ffffff", // White text for secondary text buttons
+    },
   },
 };

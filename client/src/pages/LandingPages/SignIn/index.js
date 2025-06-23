@@ -15,7 +15,6 @@ import MKTypography from "components/MKTypography";
 import MKInput from "components/MKInput";
 import MKButton from "components/MKButton";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-import SimpleFooter from "examples/Footers/SimpleFooter";
 import routes from "routes";
 import bgImage from "assets/images/bg-presentation.jpg";
 import axios from "axios";
@@ -108,9 +107,9 @@ function SignInBasic() {
             <Card>
               <MKBox
                 variant="gradient"
-                bgColor="info"
+                bgColor="secondary"
                 borderRadius="lg"
-                coloredShadow="info"
+                coloredShadow="secondary"
                 mx={2}
                 mt={-3}
                 p={2}
@@ -186,7 +185,7 @@ function SignInBasic() {
                     <MKButton
                       type="submit"
                       variant="gradient"
-                      color="info"
+                      color="secondary"
                       fullWidth
                       disabled={isLoading}
                     >
@@ -200,7 +199,7 @@ function SignInBasic() {
                         component={Link}
                         to="/pages/authentication/sign-in/sign-up"
                         variant="button"
-                        color="info"
+                        color="secondary"
                         fontWeight="medium"
                         textGradient
                       >
@@ -213,9 +212,6 @@ function SignInBasic() {
             </Card>
           </Grid>
         </Grid>
-      </MKBox>
-      <MKBox width="100%" position="absolute" zIndex={2} bottom="1.625rem">
-        <SimpleFooter light />
       </MKBox>
     </>
   );

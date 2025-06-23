@@ -243,16 +243,7 @@ const Products = () => {
       <MKBox sx={{ paddingTop: "100px" }}>
         <Container>
           {user?.role === "admin" && (
-            <Button
-              variant="contained"
-              onClick={handleAddProduct}
-              sx={{
-                mt: 2,
-                backgroundColor: "#7b1fa2",
-                color: "#ffffff",
-                "&:hover": { backgroundColor: "#6a1b9a" },
-              }}
-            >
+            <Button variant="contained" onClick={handleAddProduct}>
               Add Product
             </Button>
           )}
@@ -310,16 +301,7 @@ const Products = () => {
                       </Typography>
                       {user?.role === "admin" && (
                         <Stack direction="row" spacing={1} mt={2}>
-                          <Button
-                            size="small"
-                            onClick={() => handleEdit(product)}
-                            sx={{
-                              mt: 2,
-                              backgroundColor: "#7b1fa2",
-                              color: "#ffffff",
-                              "&:hover": { backgroundColor: "#6a1b9a", color: "#ffffff" },
-                            }}
-                          >
+                          <Button size="small" onClick={() => handleEdit(product)}>
                             Edit
                           </Button>
                           <Button
@@ -336,11 +318,6 @@ const Products = () => {
                           <Button
                             variant="contained"
                             size="small"
-                            sx={{
-                              backgroundColor: "#7b1fa2",
-                              color: "#ffffff",
-                              "&:hover": { backgroundColor: "#6a1b9a" },
-                            }}
                             onClick={() => handleAddToCartClick(product)}
                           >
                             Add to Cart
@@ -463,24 +440,8 @@ const Products = () => {
           </Button>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={handleClose}
-            sx={{
-              color: "#7b1fa2",
-              "&:hover": { color: "#CBC3E1" },
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              backgroundColor: "#7b1fa2",
-              color: "#ffffff",
-              "&:hover": { backgroundColor: "#6a1b9a" },
-            }}
-          >
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained">
             {editingProduct ? "Update" : "Add"}
           </Button>
         </DialogActions>
@@ -511,25 +472,8 @@ const Products = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={handleShadeDialogClose}
-            sx={{
-              color: "#7b1fa2",
-              "&:hover": { color: "#CBC3E1" },
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirmShade}
-            variant="contained"
-            disabled={!selectedShade}
-            sx={{
-              backgroundColor: "#7b1fa2",
-              color: "#ffffff",
-              "&:hover": { backgroundColor: "#6a1b9a" },
-            }}
-          >
+          <Button onClick={handleShadeDialogClose}>Cancel</Button>
+          <Button onClick={handleConfirmShade} variant="contained" disabled={!selectedShade}>
             Add to Cart
           </Button>
         </DialogActions>

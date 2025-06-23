@@ -21,12 +21,12 @@ Coded by www.creative-tim.com
 
 export default {
   background: {
-    default: "#f0f2f5",
+    default: "#fff0f5", // Soft pink background for a makeup-friendly vibe
   },
 
   text: {
-    main: "#7b809a",
-    focus: "#7b809a",
+    main: "#5a5a5a", // Neutral dark gray for readability
+    focus: "#ff6fa5", // Bright pink for emphasis
   },
 
   transparent: {
@@ -39,109 +39,109 @@ export default {
   },
 
   black: {
-    light: "#000000",
-    main: "#000000",
+    light: "#2d2d2d", // Slightly softer black
+    main: "#1f1f1f",
     focus: "#000000",
   },
 
   primary: {
-    main: "#e91e63",
-    focus: "#e91e63",
+    main: "#64c0e3", // Vibrant pink for primary accents
+    focus: "#52a7c6",
   },
 
   secondary: {
-    main: "#7b809a",
-    focus: "#8f93a9",
+    main: "#c597d6", // Soft lavender
+    focus: "#b286c1",
   },
 
   info: {
-    main: "#1A73E8",
-    focus: "#1662C4",
+    main: "#ff6fa5", // Soft blue for information
+    focus: "#e65c94",
   },
 
   success: {
-    main: "#4CAF50",
-    focus: "#67bb6a",
+    main: "#88d498", // Mint green
+    focus: "#77c385",
   },
 
   warning: {
-    main: "#fb8c00",
-    focus: "#fc9d26",
+    main: "#ffb347", // Warm peach
+    focus: "#f8a029",
   },
 
   error: {
-    main: "#F44335",
-    focus: "#f65f53",
+    main: "#f76c6c", // Bright coral
+    focus: "#e05555",
   },
 
   light: {
-    main: "#f0f2f5",
-    focus: "#f0f2f5",
+    main: "#fdf2f4", // Almost white with a pink tint
+    focus: "#f9e8eb",
   },
 
   dark: {
-    main: "#344767",
-    focus: "#2c3c58",
+    main: "#4a4a4a", // Cool dark gray
+    focus: "#3a3a3a",
   },
 
   grey: {
-    100: "#f8f9fa",
-    200: "#f0f2f5",
-    300: "#dee2e6",
-    400: "#ced4da",
-    500: "#adb5bd",
-    600: "#6c757d",
-    700: "#495057",
-    800: "#343a40",
-    900: "#212529",
+    100: "#faf9f9",
+    200: "#f4f4f4",
+    300: "#e9e9e9",
+    400: "#dcdcdc",
+    500: "#c2c2c2",
+    600: "#9e9e9e",
+    700: "#757575",
+    800: "#545454",
+    900: "#2e2e2e",
   },
 
   gradients: {
     primary: {
-      main: "#EC407A",
-      state: "#D81B60",
+      main: "#ff80ab",
+      state: "#ff4081",
     },
 
     secondary: {
-      main: "#747b8a",
-      state: "#495361",
+      main: "#cda8f2",
+      state: "#a884e4",
     },
 
     info: {
-      main: "#49a3f1",
-      state: "#1A73E8",
+      main: "#83d5f6",
+      state: "#5fb9df",
     },
 
     success: {
-      main: "#66BB6A",
-      state: "#43A047",
+      main: "#a5e3af",
+      state: "#83d69a",
     },
 
     warning: {
-      main: "#FFA726",
-      state: "#FB8C00",
+      main: "#ffd59e",
+      state: "#ffb873",
     },
 
     error: {
-      main: "#EF5350",
-      state: "#E53935",
+      main: "#ff9999",
+      state: "#ff6f6f",
     },
 
     light: {
-      main: "#EBEFF4",
-      state: "#CED4DA",
+      main: "#ffe6ed",
+      state: "#ffccd6",
     },
 
     dark: {
-      main: "#42424a",
-      state: "#191919",
+      main: "#595959",
+      state: "#3a3a3a",
     },
   },
 
   socialMediaColors: {
     facebook: {
       main: "#3b5998",
-      dark: "#344e86",
+      dark: "#2d4373",
     },
 
     twitter: {
@@ -150,38 +150,28 @@ export default {
     },
 
     instagram: {
-      main: "#125688",
-      dark: "#0e456d",
+      main: "#e4405f",
+      dark: "#d13c57",
     },
 
     linkedin: {
       main: "#0077b5",
-      dark: "#00669c",
+      dark: "#005f94",
     },
 
     pinterest: {
-      main: "#cc2127",
-      dark: "#b21d22",
+      main: "#bd081c",
+      dark: "#9b0615",
     },
 
     youtube: {
-      main: "#e52d27",
-      dark: "#d41f1a",
-    },
-
-    vimeo: {
-      main: "#1ab7ea",
-      dark: "#13a3d2",
+      main: "#ff0000",
+      dark: "#cc0000",
     },
 
     slack: {
       main: "#3aaf85",
-      dark: "#329874",
-    },
-
-    dribbble: {
-      main: "#ea4c89",
-      dark: "#e73177",
+      dark: "#2e8967",
     },
 
     github: {
@@ -193,69 +183,64 @@ export default {
       main: "#ff4500",
       dark: "#e03d00",
     },
-
-    tumblr: {
-      main: "#35465c",
-      dark: "#2a3749",
-    },
   },
 
   badgeColors: {
     primary: {
-      background: "#f8b3ca",
-      text: "#cc084b",
+      background: "#ffb7d5",
+      text: "#ff4081",
     },
 
     secondary: {
-      background: "#d7d9e1",
-      text: "#6c757d",
+      background: "#dfc8f5",
+      text: "#8c72b4",
     },
 
     info: {
-      background: "#aecef7",
-      text: "#095bc6",
+      background: "#cce8f7",
+      text: "#3178c6",
     },
 
     success: {
-      background: "#bce2be",
-      text: "#339537",
+      background: "#d0f2d7",
+      text: "#3b945e",
     },
 
     warning: {
-      background: "#ffd59f",
-      text: "#c87000",
+      background: "#ffedcc",
+      text: "#c87c00",
     },
 
     error: {
-      background: "#fcd3d0",
-      text: "#f61200",
+      background: "#ffd2d2",
+      text: "#e05555",
     },
 
     light: {
-      background: "#ffffff",
-      text: "#c7d3de",
+      background: "#fff3f5",
+      text: "#b39db4",
     },
 
     dark: {
-      background: "#8097bf",
-      text: "#1e2e4a",
+      background: "#979797",
+      text: "#2a2a2a",
     },
   },
 
   coloredShadows: {
-    primary: "#e91e62",
-    secondary: "#110e0e",
-    info: "#00bbd4",
-    success: "#4caf4f",
-    warning: "#ff9900",
-    error: "#f44336",
-    light: "#adb5bd",
-    dark: "#404040",
+    primary: "#ff80ab",
+    secondary: "#c597d6",
+    info: "#64c0e3",
+    success: "#88d498",
+    warning: "#ffb347",
+    error: "#f76c6c",
+    light: "#ffe6ed",
+    dark: "#595959",
   },
 
-  inputBorderColor: "#d2d6da",
+  inputBorderColor: "#d9cfe3",
 
   tabs: {
-    indicator: { boxShadow: "#ddd" },
+    indicator: { boxShadow: "#ff6fa5" },
   },
 };

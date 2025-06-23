@@ -12,6 +12,7 @@ const CartPage = () => {
   const { user } = useUser();
   const [cartItems, setCartItems] = useState([]);
   const navigate = useNavigate();
+  const [brands, setBrands] = useState([]);
   const token = localStorage.getItem("token");
 
   const handleProceedToCheckout = () => {
@@ -30,6 +31,7 @@ const CartPage = () => {
   useEffect(() => {
     if (user?.userID) {
       fetchCart();
+      fetchBrands();
     }
   }, [user]);
 
@@ -43,6 +45,14 @@ const CartPage = () => {
       console.error("Error fetching cart:", error);
     }
   };
+
+  const fetchBrands = () => {
+    axios
+      .get("http://localhost:3001/brands")
+      .then((res) => setBrands(res.data))
+      .catch((err) => console.error("Error fetching brands:", err));
+  };
+  console.log(brands);
 
   const handleRemoveFromCart = async (cartID) => {
     try {
@@ -135,6 +145,10 @@ const CartPage = () => {
                       </Typography>
                       <Typography variant="body2" sx={{ color: "#555", mb: 0.5 }} noWrap>
                         {product?.pershkrimi}
+                      </Typography>
+
+                      <Typography variant="body2" sx={{ color: "#555", mb: 0.5 }} noWrap>
+                        {product.Brand?.name || "No brand"}
                       </Typography>
 
                       {/* SHADE DISPLAY HERE */}

@@ -176,6 +176,7 @@ const Products = () => {
       setProductForm({
         ...product,
         variants: variants.map((variant) => ({
+          productVariantID: variant.productVariantID, // Include the ID
           shade: variant.shade,
           numri: variant.numri,
           inStock: variant.inStock,
@@ -205,10 +206,29 @@ const Products = () => {
     }));
   };
 
-  const removeVariant = (index) => {
-    const updatedVariants = [...productForm.variants];
-    updatedVariants.splice(index, 1);
-    setProductForm((prev) => ({ ...prev, variants: updatedVariants }));
+  const removeVariant = async (variantID, index) => {
+    try {
+      if (!variantID) {
+        const updatedVariants = [...productForm.variants];
+        updatedVariants.splice(index, 1); // Remove locally
+        setProductForm((prev) => ({ ...prev, variants: updatedVariants }));
+        return; // Skip API call for unsaved variants
+      }
+
+      if (window.confirm("Are you sure you want to delete this variant?")) {
+        await axios.delete(`http://localhost:3001/productVariants/${variantID}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const updatedVariants = [...productForm.variants];
+        updatedVariants.splice(index, 1); // Remove locally
+        setProductForm((prev) => ({ ...prev, variants: updatedVariants }));
+        alert("Variant deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Error deleting variant:", error);
+      alert("Failed to delete variant.");
+    }
   };
 
   const handleAddProduct = () => {
@@ -426,9 +446,18 @@ const Products = () => {
           <Typography variant="h6" mt={2}>
             Variants
           </Typography>
+          <Typography variant="h6" mt={2}>
+            Variants
+          </Typography>
           {Array.isArray(productForm.variants) &&
             productForm.variants.map((variant, index) => (
-              <Stack key={index} direction="row" spacing={2} alignItems="center" mt={1}>
+              <Stack
+                key={variant.productVariantID || index}
+                direction="row"
+                spacing={2}
+                alignItems="center"
+                mt={1}
+              >
                 <TextField
                   label="Shade"
                   name="shade"
@@ -452,7 +481,14 @@ const Products = () => {
                   onChange={(e) => handleVariantChange(e.target.name, e.target.value, index)}
                   size="small"
                 />
-                <Button color="error" onClick={() => removeVariant(index)} size="small">
+                <Button
+                  color="error"
+                  onClick={() => {
+                    console.log("Deleting Variant ID:", variant.productVariantID);
+                    removeVariant(variant.productVariantID, index);
+                  }}
+                  size="small"
+                >
                   Remove
                 </Button>
               </Stack>
@@ -496,7 +532,9 @@ const Products = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleShadeDialogClose}>Cancel</Button>
+          <Button onClick={handleShadeDialogClose} colot="error">
+            Cancel
+          </Button>
           <Button onClick={handleConfirmShade} variant="contained" disabled={!selectedShade}>
             Add to Cart
           </Button>

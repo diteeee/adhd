@@ -3,6 +3,8 @@ const router = express.Router();
 const { Product, Category, ProductVariant, Brand } = require("../models"); // added Brand import
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/permission');
+const { Op } = require("sequelize");
+const sequelize = require("../models").sequelize; // Ensure sequelize is imported
 
 // Get all products (include Category and Brand)
 router.get("/", async (req, res) => {
@@ -83,52 +85,70 @@ router.post("/", auth, checkRole(["admin"]), async (req, res) => {
   }
 });
 
-// Update product by ID
+//update
 router.put("/:productID", auth, checkRole(["admin"]), async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
     const { emri, pershkrimi, brandID, cmimi, productCategoryID, imageURL, variants } = req.body;
 
-    const product = await Product.findByPk(req.params.productID);
+    // Find the product
+    const product = await Product.findByPk(req.params.productID, { transaction });
     if (!product) {
       return res.status(404).json({ error: "Product not found." });
     }
 
-    // Verify category exists
-    const category = await Category.findByPk(productCategoryID);
-    if (!category) {
-      return res.status(404).json({ error: "Category not found." });
-    }
+    // Update product details
+    await product.update(
+      { emri, pershkrimi, brandID, cmimi, imageURL, productCategoryID },
+      { transaction }
+    );
 
-    // Verify brand exists
-    const brand = await Brand.findByPk(brandID);
-    if (!brand) {
-      return res.status(404).json({ error: "Brand not found." });
-    }
+    // Handle product variants
+    if (Array.isArray(variants)) {
+      const existingVariantIDs = variants.map((v) => v.productVariantID).filter(Boolean);
 
-    // Update main product fields
-    await product.update({
-      emri,
-      pershkrimi,
-      brandID,
-      cmimi,
-      imageURL,
-      productCategoryID,
-    });
-
-    // Add new variants if provided
-    if (variants && Array.isArray(variants)) {
-      const newVariants = variants.filter(variant => !variant.productVariantID);
-      for (const variant of newVariants) {
-        await ProductVariant.create({
-          ...variant,
+      // Remove variants that are not in the request
+      await ProductVariant.destroy({
+        where: {
           productVariantProductID: product.productID,
-        });
+          productVariantID: { [Op.notIn]: existingVariantIDs },
+        },
+        transaction,
+      });
+
+      // Add or update variants
+      for (const variant of variants) {
+        if (variant.productVariantID) {
+          // Update existing variant
+          await ProductVariant.update(
+            {
+              shade: variant.shade,
+              numri: variant.numri,
+              inStock: variant.inStock,
+            },
+            {
+              where: { productVariantID: variant.productVariantID },
+              transaction,
+            }
+          );
+        } else {
+          // Create new variant
+          await ProductVariant.create(
+            {
+              ...variant,
+              productVariantProductID: product.productID,
+            },
+            { transaction }
+          );
+        }
       }
     }
 
-    res.json(product);
+    await transaction.commit();
+    res.json({ message: "Product and variants updated successfully." });
   } catch (error) {
-    console.error(error);
+    await transaction.rollback();
+    console.error("Error updating product:", error);
     res.status(500).json({ error: "Failed to update product." });
   }
 });

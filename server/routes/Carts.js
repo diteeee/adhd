@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Cart, User, Product, ProductVariant } = require("../models");
+const { Cart, User, Product, ProductVariant, Brand } = require("../models");
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/permission'); 
 
@@ -12,7 +12,12 @@ router.get("/", async (req, res) => {
                 { model: User },
                 { 
                     model: ProductVariant,
-                    include: [Product]
+                    include: [
+                        {
+                            model: Product,
+                            include: [Brand],
+                        },
+                    ]
                 }
             ]
         });
@@ -31,7 +36,12 @@ router.get("/user/:userID", async (req, res) => {
       include: [
             {
                 model: ProductVariant,
-                include: [Product],
+                include: [
+                    {
+                        model: Product,
+                        include: [Brand], // Include Brand
+                    },
+                ],
             }
         ]
     });

@@ -28,7 +28,7 @@ import axios from "axios";
 const initialProductState = {
   emri: "",
   pershkrimi: "",
-  firma: "",
+  brandID: "",
   cmimi: "",
   productCategoryID: "",
   imageURL: "",
@@ -52,11 +52,13 @@ const Products = () => {
   const [selectedShade, setSelectedShade] = useState("");
   const [loadingVariants, setLoadingVariants] = useState(false);
   const [currentProductForShade, setCurrentProductForShade] = useState(null);
+  const [brands, setBrands] = useState([]);
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchCategories();
+    fetchBrands();
     fetchProducts();
   }, []);
 
@@ -65,6 +67,13 @@ const Products = () => {
       .get("http://localhost:3001/categorys")
       .then((res) => setCategories(res.data))
       .catch((err) => console.error("Error fetching categories:", err));
+  };
+
+  const fetchBrands = () => {
+    axios
+      .get("http://localhost:3001/brands")
+      .then((res) => setBrands(res.data))
+      .catch((err) => console.error("Error fetching brands:", err));
   };
 
   const fetchProducts = () => {
@@ -294,7 +303,7 @@ const Products = () => {
                         {product.pershkrimi}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {product.firma}
+                        {product.Brand?.name || "No brand"}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         ${product.cmimi}
@@ -363,14 +372,23 @@ const Products = () => {
             value={productForm.pershkrimi}
             onChange={handleFormChange}
           />
-          <TextField
-            margin="dense"
-            label="Firma"
-            name="firma"
-            fullWidth
-            value={productForm.firma}
-            onChange={handleFormChange}
-          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Brand</InputLabel>
+            <Select
+              name="brandID"
+              value={productForm.brandID}
+              onChange={handleFormChange}
+              label="Brand"
+              sx={{ height: 45 }}
+            >
+              <MenuItem value="">Select Brand</MenuItem>
+              {brands.map((brand) => (
+                <MenuItem key={brand.brandID} value={brand.brandID}>
+                  {brand.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             margin="dense"
             label="Cmimi"

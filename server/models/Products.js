@@ -14,9 +14,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        firma: {
-            type: DataTypes.STRING,
+        brandID: {
+            type: DataTypes.INTEGER,
             allowNull: false,
+            references: {
+            model: "Brands",
+            key: "brandID",
+            },
         },
         cmimi: {
             type: DataTypes.STRING,
@@ -37,6 +41,7 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: 'CASCADE'
         });
         models.Category.hasMany(Product, { foreignKey: 'productCategoryID' });
+        Product.belongsTo(models.Brand, { foreignKey: 'brandID' });
     };
 
     return Product;

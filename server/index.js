@@ -79,6 +79,9 @@ app.use("/wishlists", wishlistRouter);
 const cartRouter = require('./routes/Carts');
 app.use("/carts", cartRouter);
 
+const brandsRouter = require('./routes/Brands');
+app.use("/brands", brandsRouter);
+
 const notificationRouter = require('./routes/Notifications')(io);
 app.use("/notifications", notificationRouter);
 

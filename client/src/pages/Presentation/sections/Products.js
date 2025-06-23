@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Container,
   Grid,
@@ -23,6 +23,7 @@ import MKBox from "components/MKBox";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import routes from "routes";
 import { useUser } from "context/UserContext";
+import { CartContext } from "context/CartContext";
 import axios from "axios";
 
 const initialProductState = {
@@ -41,6 +42,7 @@ const Products = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(true);
+  const { triggerCartRefresh } = useContext(CartContext);
 
   const [open, setOpen] = useState(false); // Add/Edit product dialog
   const [editingProduct, setEditingProduct] = useState(null);
@@ -127,6 +129,7 @@ const Products = () => {
       });
       alert("Product added to cart!");
       setShadeDialogOpen(false);
+      triggerCartRefresh(); // <--- trigger cart update here!
       console.log(response);
     } catch (error) {
       console.error("Error adding variant to cart:", error);

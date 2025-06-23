@@ -1,49 +1,44 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import PropTypes from "prop-types";
 import LocalMallIcon from "@mui/icons-material/LocalMall";
 import { IconButton, Badge } from "@mui/material";
-import { useUser } from "context/UserContext"; // Import the UserContext
-import axios from "axios"; // Import axios for making API requests
+import { useUser } from "context/UserContext";
+import { CartContext } from "context/CartContext"; // Import CartContext
+import axios from "axios";
 
 const FloatingCart = ({ navigateTo }) => {
-  const { user } = useUser(); // Access the user context
-  const [cartCount, setCartCount] = useState(0); // State for cart count
+  const { user } = useUser();
+  const { refreshCart } = useContext(CartContext); // Get refresh signal
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const fetchCartData = async () => {
-      if (!user) return; // If no user is logged in, skip fetching
+      if (!user) return;
 
       try {
-        // Make a request to the backend to get the cart items for the user
         const response = await axios.get(`http://localhost:3001/carts/user/${user.userID}`);
-        const cartItems = response.data;
-
-        // Update the cart count based on the number of items
-        setCartCount(cartItems.length);
+        setCartCount(response.data.length);
       } catch (error) {
         console.error("Error fetching cart data:", error);
       }
     };
 
     fetchCartData();
-  }, [user]);
+  }, [user, refreshCart]); // <-- re-fetch on refreshCart changes
 
-  // Render nothing if no user is logged in
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <div
       style={{
         position: "fixed",
-        bottom: "20px",
-        right: "20px",
+        bottom: 20,
+        right: 20,
         zIndex: 1000,
         backgroundColor: "#fff",
         borderRadius: "50%",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-        padding: "10px",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+        padding: 10,
       }}
     >
       <IconButton onClick={navigateTo}>
@@ -55,9 +50,8 @@ const FloatingCart = ({ navigateTo }) => {
   );
 };
 
-// Add PropTypes for props validation
 FloatingCart.propTypes = {
-  navigateTo: PropTypes.func.isRequired, // Ensure navigateTo is a function and required
+  navigateTo: PropTypes.func.isRequired,
 };
 
 export default FloatingCart;

@@ -15,6 +15,8 @@ Coded by www.creative-tim.com
 */
 
 import React, { Fragment, useState, useEffect } from "react";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import IconButton from "@mui/material/IconButton";
 
 // react-router components
 import { Link } from "react-router-dom";
@@ -45,7 +47,17 @@ import breakpoints from "assets/theme/base/breakpoints";
 import { useUser } from "context/UserContext"; // Ensure the path is correct
 import { cloneDeep } from "lodash";
 
-function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
+function DefaultNavbar({
+  brand,
+  routes,
+  transparent,
+  light,
+  action,
+  sticky,
+  relative,
+  center,
+  openWishlist,
+}) {
   const [dropdown, setDropdown] = useState("");
   const [dropdownEl, setDropdownEl] = useState("");
   const [dropdownName, setDropdownName] = useState("");
@@ -530,6 +542,9 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             ml="auto"
             mr={center ? "auto" : 0}
           >
+            <IconButton color="error" onClick={openWishlist} sx={{ ml: 2 }}>
+              <FavoriteIcon />
+            </IconButton>
             {renderNavbarItems}
           </MKBox>
           <MKBox ml={{ xs: "auto", lg: 0 }}>
@@ -610,6 +625,7 @@ DefaultNavbar.propTypes = {
   routes: PropTypes.arrayOf(PropTypes.shape).isRequired,
   transparent: PropTypes.bool,
   light: PropTypes.bool,
+  openWishlist: PropTypes.func, // <--- Add this line
   action: PropTypes.oneOfType([
     PropTypes.bool,
     PropTypes.shape({

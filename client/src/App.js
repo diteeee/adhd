@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -13,13 +13,16 @@ import Products from "./pages/Presentation/sections/Products";
 import SuccessPage from "pages/Presentation/sections/SuccessPage";
 import Cart from "pages/Presentation/sections/Cart";
 import FloatingCart from "./components/FloatingCart";
+import WishlistDrawer from "pages/Presentation/sections/Wishlist"; // Your wishlist drawer component
+import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 
 function AppContent() {
   const { user } = useUser();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  console.log("user from context: ", user);
+  const [wishlistOpen, setWishlistOpen] = useState(false);
+
   // Scroll to top on route change
   useEffect(() => {
     document.documentElement.scrollTop = 0;
@@ -42,22 +45,42 @@ function AppContent() {
         return;
       }
 
+      // Exclude wishlist page route, since we're using drawer instead
+      if (route.key === "wishlist") return;
+
       return route.route
         ? [<Route path={route.route} element={route.component} key={route.key} />]
         : [];
     });
 
   const handleNavigateToCart = () => {
-    navigate("/cart"); // Ensure this matches your cart route
+    navigate("/cart");
+  };
+
+  // Open wishlist drawer
+  const openWishlist = () => {
+    setWishlistOpen(true);
+  };
+
+  // Close wishlist drawer
+  const closeWishlist = () => {
+    setWishlistOpen(false);
   };
 
   return (
     <>
       <Notification userId={user?.userID} />
       <FloatingCart navigateTo={handleNavigateToCart} />
+
+      {/* Pass openWishlist to Navbar so you can open the drawer */}
+      <DefaultNavbar routes={routes} sticky openWishlist={openWishlist} />
+
+      {/* Wishlist Drawer controlled by state */}
+      <WishlistDrawer open={wishlistOpen} onClose={closeWishlist} />
+
       <Routes>
         {getRoutes(routes)}
-        <Route path="/presentation" element={<Presentation />} />
+        <Route path="/presentation" element={<Presentation openWishlist={openWishlist} />} />
         <Route path="*" element={<Navigate to="/presentation" />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/products" element={<Products />} />

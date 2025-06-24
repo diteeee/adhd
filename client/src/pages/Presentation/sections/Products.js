@@ -28,6 +28,7 @@ import routes from "routes";
 import { useUser } from "context/UserContext";
 import { CartContext } from "context/CartContext";
 import axios from "axios";
+import WishlistDrawer from "pages/Presentation/sections/Wishlist";
 
 const initialProductState = {
   emri: "",
@@ -60,6 +61,7 @@ const Products = () => {
   const [currentProductForShade, setCurrentProductForShade] = useState(null);
   const [brands, setBrands] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState("");
+  const [wishlistOpen, setWishlistOpen] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -138,8 +140,6 @@ const Products = () => {
       alert("Failed to update wishlist.");
     }
   };
-
-  console.log(currentProductForShade);
 
   const handleAddToCartClick = async (product) => {
     if (!user) {
@@ -327,9 +327,22 @@ const Products = () => {
     }
   };
 
+  // Open wishlist drawer
+  const openWishlist = () => {
+    setWishlistOpen(true);
+  };
+
+  // Close wishlist drawer
+  const closeWishlist = () => {
+    setWishlistOpen(false);
+  };
+
+  console.log(currentProductForShade, wishlistOpen, closeWishlist);
+
   return (
     <>
-      <DefaultNavbar routes={routes} sticky />
+      <DefaultNavbar routes={routes} sticky openWishlist={openWishlist} />
+      <WishlistDrawer open={wishlistOpen} onClose={closeWishlist} />
       <MKBox sx={{ paddingTop: "100px" }}>
         <Container>
           {user?.role === "admin" && (
@@ -645,7 +658,7 @@ const Products = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleShadeDialogClose} colot="error">
+          <Button onClick={handleShadeDialogClose} color="error">
             Cancel
           </Button>
           <Button onClick={handleConfirmShade} variant="contained" disabled={!selectedShade}>

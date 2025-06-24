@@ -8,20 +8,22 @@ import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
 
 // Material Kit 2 React examples
-import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import DefaultFooter from "examples/Footers/DefaultFooter";
+import routes from "routes";
 
 // Routes
-import routes from "routes";
 import footerRoutes from "footer.routes";
 import React, { useRef, useState } from "react";
 import emailjs from "emailjs-com";
+import WishlistDrawer from "pages/Presentation/sections/Wishlist";
+import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 
 function ContactUs() {
   const formRef = useRef();
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [wishlistOpen, setWishlistOpen] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -47,26 +49,27 @@ function ContactUs() {
     );
   };
 
+  const openWishlist = () => {
+    setWishlistOpen(true);
+  };
+  // Close wishlist drawer
+  const closeWishlist = () => {
+    setWishlistOpen(false);
+  };
+
+  console.log(wishlistOpen, closeWishlist);
+
   return (
     <>
-      <MKBox position="fixed" top="0.5rem" width="100%">
-        <DefaultNavbar
-          routes={routes}
-          action={{
-            type: "external",
-            route: "https://www.creative-tim.com/product/material-kit-react",
-            label: "free download",
-            color: "info",
-          }}
-        />
-      </MKBox>
+      <DefaultNavbar routes={routes} sticky openWishlist={openWishlist} />
+      <WishlistDrawer open={wishlistOpen} onClose={closeWishlist} />
 
       <Grid
         container
         spacing={3}
         alignItems="flex-start"
         justifyContent="center"
-        sx={{ mt: { xs: 15, sm: 18, md: 20 }, mb: { xs: 15, sm: 18, md: 20 }, px: 2 }}
+        sx={{ pt: "100px" }}
       >
         {/* Contact Form Card */}
         <Grid item xs={12} md={6} lg={5}>

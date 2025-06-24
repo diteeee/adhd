@@ -62,29 +62,36 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   useEffect(() => {
     const newRoutes = cloneDeep(routes);
 
-    // Filter sign in/out links based on user presence
+    // Find "More" route (index 1)
+    const moreRoute = newRoutes.find((r) => r.name.toLowerCase() === "more");
+    if (!moreRoute) return;
+
+    // Find "account" collapse inside More
+    const accountCollapse = moreRoute.collapse.find((c) => c.name.toLowerCase() === "account");
+    if (!accountCollapse) return;
+
     if (!user) {
-      newRoutes[0].collapse[1].collapse = newRoutes[0].collapse[1].collapse.filter(
-        (item) => item.name !== "log out"
+      // Filter out "log out" when no user
+      accountCollapse.collapse = accountCollapse.collapse.filter(
+        (item) => item.name.toLowerCase() !== "log out"
       );
     } else {
-      newRoutes[0].collapse[1].collapse = newRoutes[0].collapse[1].collapse.filter(
-        (item) => item.name !== "sign in" && item.name !== "sign up"
+      // Filter out sign in / sign up when user is logged in
+      accountCollapse.collapse = accountCollapse.collapse.filter(
+        (item) => item.name.toLowerCase() !== "sign in" && item.name.toLowerCase() !== "sign up"
       );
 
-      // If user is admin, add Dashboard route dynamically
       if (user.role === "admin") {
         const dashboardRoute = {
           name: "Dashboard",
           route: `http://localhost:3006/dashboard?token=${localStorage.getItem("token")}`,
-          icon: <Icon>dashboard</Icon>, // or any icon you want to use
-          external: true, // mark as external link if using full URL
-          // If you want it to open in a new tab:
+          icon: <Icon>dashboard</Icon>,
+          external: true,
           target: "_blank",
         };
 
-        // Add dashboard route to the routes array (for example, at the start or end)
-        newRoutes[0].collapse[1].collapse.unshift(dashboardRoute);
+        // Add dashboard route at start or end of accountCollapse
+        accountCollapse.collapse.unshift(dashboardRoute);
       }
     }
 

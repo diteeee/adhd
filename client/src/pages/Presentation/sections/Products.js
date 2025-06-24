@@ -20,6 +20,9 @@ import {
   CircularProgress,
 } from "@mui/material";
 import MKBox from "components/MKBox";
+import IconButton from "@mui/material/IconButton";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import routes from "routes";
 import { useUser } from "context/UserContext";
@@ -41,6 +44,7 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [wishlist, setWishlist] = useState([]); // Store wishlist items
   const [loading, setLoading] = useState(true);
   const { triggerCartRefresh } = useContext(CartContext);
 
@@ -63,6 +67,7 @@ const Products = () => {
     fetchCategories();
     fetchBrands();
     fetchProducts();
+    fetchWishlist();
   }, []);
 
   const fetchCategories = () => {
@@ -91,6 +96,47 @@ const Products = () => {
         console.error("Error fetching products:", err);
         setLoading(false);
       });
+  };
+
+  const fetchWishlist = () => {
+    if (user) {
+      axios
+        .get(`http://localhost:3001/wishlists/${user.userID}`)
+        .then((res) => setWishlist(res.data))
+        .catch((err) => console.error("Error fetching wishlist:", err));
+    }
+  };
+
+  const isProductInWishlist = (productID) => {
+    return wishlist.some((item) => item.productID === productID);
+  };
+
+  const handleWishlistClick = async (productID) => {
+    if (!user) {
+      alert("Please log in to add products to your wishlist.");
+      return;
+    }
+
+    try {
+      if (isProductInWishlist(productID)) {
+        // Remove from wishlist
+        await axios.delete(`http://localhost:3001/wishlists`, {
+          data: { productID, userID: user.userID }, // Send data in request body
+        });
+        setWishlist((prev) => prev.filter((item) => item.productID !== productID));
+      } else {
+        // Add to wishlist
+        const response = await axios.post("http://localhost:3001/wishlists", {
+          userID: user.userID,
+          productID,
+        });
+        setWishlist((prev) => [...prev, { productID }]);
+        console.log("Wishlist response:", response.data);
+      }
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+      alert("Failed to update wishlist.");
+    }
   };
 
   console.log(currentProductForShade);
@@ -353,7 +399,26 @@ const Products = () => {
             ) : products.length > 0 ? (
               products.map((product) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.productID}>
-                  <Card sx={{ maxWidth: 345 }}>
+                  <Card sx={{ maxWidth: 345, position: "relative" }}>
+                    {/* Heart Icon for Wishlist */}
+                    <IconButton
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        left: 8,
+                        backgroundColor: "rgba(255, 255, 255, 0.7)",
+                        "&:hover": { backgroundColor: "rgba(255, 255, 255, 1)" },
+                        zIndex: 10,
+                      }}
+                      onClick={() => handleWishlistClick(product.productID)}
+                    >
+                      {isProductInWishlist(product.productID) ? (
+                        <FavoriteIcon color="error" />
+                      ) : (
+                        <FavoriteBorderIcon color="error" />
+                      )}
+                    </IconButton>
+
                     <CardMedia
                       component="img"
                       alt={product.emri}

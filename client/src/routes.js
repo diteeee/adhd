@@ -37,7 +37,6 @@ Coded by www.creative-tim.com
 */
 
 // @mui material components
-import Icon from "@mui/material/Icon";
 
 // Pages
 import AboutUs from "layouts/pages/landing-pages/about-us";
@@ -50,8 +49,13 @@ import Products from "pages/Presentation/sections/Products";
 
 const routes = [
   {
-    name: "pages",
-    icon: <Icon>dashboard</Icon>,
+    name: "products",
+    route: "/sections/products",
+    component: <Products />,
+    key: "products",
+  },
+  {
+    name: "More",
     columns: 1,
     rowsPerColumn: 2,
     collapse: [
@@ -97,18 +101,6 @@ const routes = [
             key: "signup",
           },
         ],
-      },
-    ],
-  },
-  {
-    name: "sections",
-    icon: <Icon>view_day</Icon>,
-    collapse: [
-      {
-        name: "products",
-        route: "/sections/products",
-        component: <Products />,
-        key: "products",
       },
     ],
   },

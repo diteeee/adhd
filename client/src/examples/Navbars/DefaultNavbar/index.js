@@ -542,9 +542,11 @@ function DefaultNavbar({
             ml="auto"
             mr={center ? "auto" : 0}
           >
-            <IconButton color="error" onClick={openWishlist} sx={{ ml: 2 }}>
-              <FavoriteIcon />
-            </IconButton>
+            {user && (
+              <IconButton color="error" onClick={openWishlist} sx={{ ml: 2 }}>
+                <FavoriteIcon />
+              </IconButton>
+            )}
             {renderNavbarItems}
           </MKBox>
           <MKBox ml={{ xs: "auto", lg: 0 }}>

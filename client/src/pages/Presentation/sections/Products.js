@@ -23,8 +23,6 @@ import MKBox from "components/MKBox";
 import IconButton from "@mui/material/IconButton";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-import routes from "routes";
 import { useUser } from "context/UserContext";
 import { CartContext } from "context/CartContext";
 import axios from "axios";
@@ -327,11 +325,6 @@ const Products = () => {
     }
   };
 
-  // Open wishlist drawer
-  const openWishlist = () => {
-    setWishlistOpen(true);
-  };
-
   // Close wishlist drawer
   const closeWishlist = () => {
     setWishlistOpen(false);
@@ -341,7 +334,6 @@ const Products = () => {
 
   return (
     <>
-      <DefaultNavbar routes={routes} sticky openWishlist={openWishlist} />
       <WishlistDrawer open={wishlistOpen} onClose={closeWishlist} />
       <MKBox sx={{ paddingTop: "100px" }}>
         <Container>
@@ -518,6 +510,23 @@ const Products = () => {
             value={productForm.pershkrimi}
             onChange={handleFormChange}
           />
+          <TextField
+            margin="dense"
+            label="Cmimi"
+            name="cmimi"
+            type="number"
+            fullWidth
+            value={productForm.cmimi}
+            onChange={handleFormChange}
+          />
+          <TextField
+            margin="dense"
+            label="Image URL"
+            name="imageURL"
+            fullWidth
+            value={productForm.imageURL}
+            onChange={handleFormChange}
+          />
           <FormControl fullWidth margin="dense">
             <InputLabel>Brand</InputLabel>
             <Select
@@ -535,15 +544,6 @@ const Products = () => {
               ))}
             </Select>
           </FormControl>
-          <TextField
-            margin="dense"
-            label="Cmimi"
-            name="cmimi"
-            type="number"
-            fullWidth
-            value={productForm.cmimi}
-            onChange={handleFormChange}
-          />
           <FormControl fullWidth margin="dense">
             <InputLabel>Category</InputLabel>
             <Select
@@ -561,17 +561,6 @@ const Products = () => {
               ))}
             </Select>
           </FormControl>
-          <TextField
-            margin="dense"
-            label="Image URL"
-            name="imageURL"
-            fullWidth
-            value={productForm.imageURL}
-            onChange={handleFormChange}
-          />
-          <Typography variant="h6" mt={2}>
-            Variants
-          </Typography>
           <Typography variant="h6" mt={2}>
             Variants
           </Typography>

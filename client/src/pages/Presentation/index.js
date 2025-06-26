@@ -8,10 +8,8 @@ import { useNavigate } from "react-router-dom"; // <-- Import this
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 
-import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import DefaultFooter from "examples/Footers/DefaultFooter";
 
-import routes from "routes";
 import footerRoutes from "footer.routes";
 
 import bgImage from "assets/images/bg-presentation.jpg";
@@ -29,7 +27,6 @@ function Presentation() {
 
   return (
     <>
-      <DefaultNavbar routes={routes} />
       {/* Hero Section */}
       <MKBox
         minHeight="75vh"

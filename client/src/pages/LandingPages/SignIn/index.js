@@ -14,8 +14,6 @@ import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKInput from "components/MKInput";
 import MKButton from "components/MKButton";
-import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-import routes from "routes";
 import bgImage from "assets/images/bg-presentation.jpg";
 import axios from "axios";
 import { useUser } from "context/UserContext";
@@ -58,6 +56,7 @@ function SignInBasic() {
           emri: decodedToken.emri,
           mbiemri: decodedToken.mbiemri,
           nrTel: decodedToken.nrTel,
+          userID: decodedToken.userID,
         };
 
         setUser(userData);
@@ -82,7 +81,6 @@ function SignInBasic() {
 
   return (
     <>
-      <DefaultNavbar routes={routes} transparent light />
       <MKBox
         position="absolute"
         top={0}

@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Container, Box, Typography, IconButton, TextField, Button, Stack } from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 import MKBox from "components/MKBox";
-import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-import routes from "routes";
 import { useUser } from "context/UserContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -88,7 +86,6 @@ const CartPage = () => {
 
   return (
     <>
-      <DefaultNavbar routes={routes} sticky />
       <MKBox sx={{ paddingTop: "100px", minHeight: "70vh", backgroundColor: "#f9f5f7" }}>
         <Container maxWidth="lg">
           <Typography
@@ -112,7 +109,7 @@ const CartPage = () => {
                   <Typography variant="body1" mb={2}>
                     Your cart is empty.
                   </Typography>
-                  <Button variant="contained" color="white" onClick={() => navigate("/products")}>
+                  <Button variant="contained" onClick={() => navigate("/products")}>
                     Browse Products
                   </Button>
                 </Box>

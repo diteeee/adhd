@@ -9,14 +9,12 @@ import MKTypography from "components/MKTypography";
 
 // Material Kit 2 React examples
 import DefaultFooter from "examples/Footers/DefaultFooter";
-import routes from "routes";
 
 // Routes
 import footerRoutes from "footer.routes";
 import React, { useRef, useState } from "react";
 import emailjs from "emailjs-com";
 import WishlistDrawer from "pages/Presentation/sections/Wishlist";
-import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 
 function ContactUs() {
   const formRef = useRef();
@@ -49,9 +47,6 @@ function ContactUs() {
     );
   };
 
-  const openWishlist = () => {
-    setWishlistOpen(true);
-  };
   // Close wishlist drawer
   const closeWishlist = () => {
     setWishlistOpen(false);
@@ -61,7 +56,6 @@ function ContactUs() {
 
   return (
     <>
-      <DefaultNavbar routes={routes} sticky openWishlist={openWishlist} />
       <WishlistDrawer open={wishlistOpen} onClose={closeWishlist} />
 
       <Grid

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Order, OrderItem, User, Cart, Product, ProductVariant, Payment, Coupon } = require("../models");
+const { Order, OrderItem, User, Cart, Product, ProductVariant, Payment, Coupon, Return } = require("../models");
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/permission'); 
 const Stripe = require("stripe");
@@ -19,9 +19,8 @@ router.get("/", async (req, res) => {
 // Get all orders for a specific user
 router.get("/user", auth, async (req, res) => {
     try {
-        const userID = req.user.userID; // Assuming `auth` middleware sets `req.user`
         const orders = await Order.findAll({
-            where: { orderUserID: userID },
+            where: { orderUserID: req.user.userID },
             include: [
                 {
                     model: OrderItem,
@@ -32,18 +31,16 @@ router.get("/user", auth, async (req, res) => {
                         },
                     ],
                 },
-                Payment, // Include payment details if needed
+                {
+                    model: Return, // Include associated returns
+                },
             ],
         });
 
-        if (!orders || orders.length === 0) {
-            return res.status(404).json({ error: "No orders found." });
-        }
-
         res.json(orders);
     } catch (error) {
-        console.error("Error fetching user's orders:", error);
-        res.status(500).json({ error: "Failed to fetch orders." });
+        console.error("Failed to retrieve orders:", error);
+        res.status(500).json({ error: "Failed to retrieve orders." });
     }
 });
 

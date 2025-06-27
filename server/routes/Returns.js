@@ -46,13 +46,29 @@ router.post("/", async (req, res) => {
 router.put("/:returnID", auth, checkRole(["admin"]), async (req, res) => {
     try {
         const { arsyeja, status, returnOrderID } = req.body;
+
+        // Find the return record
         const ret = await Return.findByPk(req.params.returnID);
         if (!ret) {
             return res.status(404).json({ error: "Return not found." });
         }
+
+        // Update the return record
         await ret.update({ arsyeja, status, returnOrderID });
-        res.json(ret);
+
+        // If status is 'confirmed', delete the associated order
+        if (status === "confirmed") {
+            const order = await Order.findByPk(returnOrderID);
+            if (!order) {
+                return res.status(404).json({ error: "Associated order not found." });
+            }
+
+            await order.destroy();
+        }
+
+        res.json({ message: "Return updated successfully.", return: ret });
     } catch (error) {
+        console.error("Failed to update return:", error);
         res.status(500).json({ error: "Failed to update return." });
     }
 });

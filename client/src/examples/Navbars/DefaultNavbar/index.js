@@ -85,7 +85,7 @@ function DefaultNavbar({
     if (!user) {
       // Filter out "log out" when no user
       accountCollapse.collapse = accountCollapse.collapse.filter(
-        (item) => item.name.toLowerCase() !== "log out"
+        (item) => item.name.toLowerCase() !== "log out" && item.name.toLowerCase() !== "profile"
       );
     } else {
       // Filter out sign in / sign up when user is logged in

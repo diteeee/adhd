@@ -20,16 +20,5 @@ module.exports = (sequelize, DataTypes) => {
         },
     });
 
-    Coupon.associate = (models) => {
-        Coupon.belongsTo(models.Payment, {
-            foreignKey: {
-                name: 'couponPaymentID',
-                allowNull: false
-            },
-            onDelete: 'CASCADE'
-        });
-        models.Payment.hasMany(Coupon, { foreignKey: 'couponPaymentID' });
-    };
-
     return Coupon;
 };

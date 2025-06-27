@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Order, OrderItem, User, Cart, Product, ProductVariant, Payment } = require("../models");
+const { Order, OrderItem, User, Cart, Product, ProductVariant, Payment, Coupon } = require("../models");
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/permission'); 
 const Stripe = require("stripe");
@@ -60,19 +60,16 @@ router.post("/", async (req, res) => {
 
 // POST /checkout
 router.post("/checkout", async (req, res) => {
-    const { userID, paymentMethod } = req.body;
+    const { userID, paymentMethod, couponCode } = req.body;  // <-- added couponCode
 
-    // Ensure paymentMethod is provided
     if (!paymentMethod) {
         return res.status(400).json({ error: "Payment method is required." });
     }
 
     try {
-        // 1. Fetch user
         const user = await User.findByPk(userID);
         if (!user) return res.status(404).json({ error: "User not found." });
 
-        // 2. Get all cart items for this user
         const cartItems = await Cart.findAll({
             where: { cartUserID: userID },
             include: [
@@ -87,45 +84,57 @@ router.post("/checkout", async (req, res) => {
             return res.status(400).json({ error: "Cart is empty." });
         }
 
-        // 3. Create new order
-        const order = await Order.create({ orderUserID: userID, status: "pending", totalPrice: 0 });
-
         let totalPrice = 0;
+        for (const item of cartItems) {
+            const basePrice = Number(item.ProductVariant.Product.cmimi);
+            totalPrice += basePrice * item.sasia;
+        }
 
-        // 4. Loop through cart items and create orderItems
+        // Apply coupon discount if couponCode is provided
+        let discountAmount = 0;
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ where: { kodi: couponCode } });
+            if (!coupon) {
+                return res.status(400).json({ error: "Invalid coupon code." });
+            }
+            // Optionally add expiration/usage checks here
+            discountAmount = Number(coupon.shuma) || 0;
+            totalPrice = Math.max(totalPrice - discountAmount, 0);
+        }
+
+        const order = await Order.create({
+            orderUserID: userID,
+            status: "pending",
+            totalPrice,
+        });
+
         for (const item of cartItems) {
             const basePrice = Number(item.ProductVariant.Product.cmimi);
             const itemTotal = basePrice * item.sasia;
-
             await OrderItem.create({
                 sasia: item.sasia,
                 cmimi: itemTotal,
                 orderItemOrderID: order.orderID,
-                orderItemProductVariantID: item.cartProductVariantID
+                orderItemProductVariantID: item.cartProductVariantID,
             });
-
-            totalPrice += itemTotal;
         }
 
-        // 5. Update order total price
-        await Order.update({ totalPrice }, { where: { orderID: order.orderID } });
-
-        // 7. Create a Payment record
         const payment = await Payment.create({
-            metoda: paymentMethod,       // Payment method: e.g., 'credit_card', 'paypal', etc.
-            status: 'pending',           // Set the payment status to 'pending'
-            data: {},  // Placeholder for the actual transaction ID
-            paymentOrderID: order.orderID  // Link the payment to the order
+            metoda: paymentMethod,
+            status: 'pending',
+            data: {},
+            paymentOrderID: order.orderID,
+            amount: totalPrice, // optional: store final amount here
         });
 
         await Cart.destroy({ where: { cartUserID: userID } });
 
-        // 8. Return order ID and payment ID
         res.status(201).json({
             message: "Checkout initialized",
             orderID: order.orderID,
             paymentID: payment.paymentID,
             totalPrice,
+            discountAmount,
         });
     } catch (error) {
         console.error("Checkout error:", error);
@@ -133,8 +142,6 @@ router.post("/checkout", async (req, res) => {
     }
 });
 
-
-//create checkout me stripe
 router.post("/create-checkout-session", async (req, res) => {
   const { orderID, paymentID } = req.body;
 
@@ -155,7 +162,6 @@ router.post("/create-checkout-session", async (req, res) => {
 
     if (!order) return res.status(404).json({ error: "Order not found." });
 
-    // Find payment to check method
     const payment = await Payment.findByPk(paymentID);
     if (!payment) return res.status(404).json({ error: "Payment not found." });
 
@@ -163,23 +169,22 @@ router.post("/create-checkout-session", async (req, res) => {
       return res.status(400).json({ error: "Cash payment does not require Stripe session." });
     }
 
-    // ... create line items & stripe session as before ...
-    const lineItems = order.OrderItems.map((item) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.ProductVariant?.Product?.emri || "Product",
-        },
-        unit_amount: Math.round((item.cmimi / item.sasia) * 100),
-      },
-      quantity: item.sasia,
-    }));
-
+    // Create single line item with total price after discount
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      line_items: lineItems,
-      // Pass orderID as query param in success URL:
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Order #${order.orderID} - Total after discount`,
+            },
+            unit_amount: Math.round(order.totalPrice * 100), // totalPrice already discounted
+          },
+          quantity: 1,
+        },
+      ],
       success_url: `http://localhost:3000/success?orderID=${order.orderID}`,
       cancel_url: 'http://localhost:3000/cart',
       metadata: {
@@ -193,7 +198,6 @@ router.post("/create-checkout-session", async (req, res) => {
     res.status(500).json({ error: "Failed to create Stripe session" });
   }
 });
-
 
 // Delete order by ID
 router.delete("/:orderID", auth, checkRole(["admin"]), async (req, res) => {

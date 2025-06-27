@@ -413,7 +413,7 @@ const Products = () => {
                         left: 8,
                         backgroundColor: "rgba(255, 255, 255, 0.7)",
                         "&:hover": { backgroundColor: "rgba(255, 255, 255, 1)" },
-                        zIndex: 10,
+                        // zIndex: 10,
                       }}
                       onClick={() => handleWishlistClick(product.productID)}
                     >

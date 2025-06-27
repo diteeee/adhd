@@ -12,6 +12,7 @@ import {
   Alert,
   Divider,
   Box,
+  TextField,
 } from "@mui/material";
 import axios from "axios";
 import { useUser } from "context/UserContext";
@@ -26,6 +27,8 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
   const navigate = useNavigate();
 
   const handlePayment = async () => {
@@ -39,6 +42,7 @@ const PaymentPage = () => {
         {
           userID: user.userID,
           paymentMethod,
+          couponCode,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -74,10 +78,33 @@ const PaymentPage = () => {
     }
   };
 
+  const handleApplyCoupon = async () => {
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3001/coupons/apply-coupon",
+        { couponCode },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setDiscount(Number(response.data.discount || 0)); // Ensure discount is a number
+      setSuccessMsg(response.data.message);
+    } catch (error) {
+      console.error("Coupon Error:", error);
+      setErrorMsg(error.response?.data?.error || "Failed to apply coupon.");
+    }
+  };
+
+  const finalPrice = Math.max(totalPrice - discount, 0);
+
   return (
-    <Container maxWidth="md" sx={{ mt: 8 }}>
+    <Container maxWidth="md">
       <Paper sx={{ p: 4, boxShadow: 4, borderRadius: 2 }}>
-        <Typography variant="h4" fontWeight="bold" textAlign="center" mb={4}>
+        <Typography variant="h4" fontWeight="bold" textAlign="center" mb={4} mt={10}>
           Secure Checkout
         </Typography>
 
@@ -109,13 +136,40 @@ const PaymentPage = () => {
         )}
 
         <Typography
+          variant="body1"
+          fontWeight="medium"
+          textAlign="right"
+          sx={{ mt: 1, color: "green" }}
+        >
+          Discount: -${(typeof discount === "number" ? discount : 0).toFixed(2)}
+        </Typography>
+
+        <Typography
           variant="h6"
           fontWeight="bold"
           textAlign="right"
           sx={{ borderTop: "1px solid #ddd", pt: 2, mt: 2 }}
         >
-          Total: ${totalPrice?.toFixed(2)}
+          Final Total: ${finalPrice.toFixed(2)}
         </Typography>
+
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+          <TextField
+            label="Coupon Code"
+            variant="outlined"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+            sx={{ flex: 1 }}
+          />
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleApplyCoupon}
+            disabled={!couponCode}
+          >
+            Apply
+          </Button>
+        </Stack>
 
         <Divider sx={{ my: 3 }} />
 

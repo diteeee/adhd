@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Grid,
@@ -10,8 +10,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 
+import { useNavigate } from "react-router-dom"; // For navigation
 import MKBox from "components/MKBox";
-import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 import { useUser } from "context/UserContext"; // Adjust the import path as necessary
 import axios from "axios";
@@ -21,6 +21,14 @@ function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(user || {});
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Initialize navigation
+
+  useEffect(() => {
+    // Redirect to login if not signed in
+    if (!user) {
+      navigate("/pages/authentication/sign-in");
+    }
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,7 +50,7 @@ function ProfilePage() {
     }
   };
 
-  if (!user) return <MKTypography variant="h6">User not logged in.</MKTypography>;
+  if (!user) return null; // Return null while redirecting to avoid rendering the page
 
   return (
     <Container>

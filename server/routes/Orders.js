@@ -16,6 +16,37 @@ router.get("/", async (req, res) => {
     }
 });
 
+// Get all orders for a specific user
+router.get("/user", auth, async (req, res) => {
+    try {
+        const userID = req.user.userID; // Assuming `auth` middleware sets `req.user`
+        const orders = await Order.findAll({
+            where: { orderUserID: userID },
+            include: [
+                {
+                    model: OrderItem,
+                    include: [
+                        {
+                            model: ProductVariant,
+                            include: [Product],
+                        },
+                    ],
+                },
+                Payment, // Include payment details if needed
+            ],
+        });
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ error: "No orders found." });
+        }
+
+        res.json(orders);
+    } catch (error) {
+        console.error("Error fetching user's orders:", error);
+        res.status(500).json({ error: "Failed to fetch orders." });
+    }
+});
+
 // Get order by ID
 router.get("/:orderID", async (req, res) => {
   try {

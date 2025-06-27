@@ -74,35 +74,35 @@ function DefaultNavbar({
   useEffect(() => {
     const newRoutes = cloneDeep(routes);
 
-    // Find "More" route (index 1)
+    // Find "More" route
     const moreRoute = newRoutes.find((r) => r.name.toLowerCase() === "more");
     if (!moreRoute) return;
 
-    // Find "account" collapse inside More
+    // Find "Account" collapse inside "More"
     const accountCollapse = moreRoute.collapse.find((c) => c.name.toLowerCase() === "account");
     if (!accountCollapse) return;
 
     if (!user) {
-      // Filter out "log out" when no user
+      // Remove routes for logged-in users
       accountCollapse.collapse = accountCollapse.collapse.filter(
-        (item) => item.name.toLowerCase() !== "log out" && item.name.toLowerCase() !== "profile"
+        (item) => !["log out", "profile", "my orders"].includes(item.name.toLowerCase())
       );
     } else {
-      // Filter out sign in / sign up when user is logged in
+      // Remove routes for guests
       accountCollapse.collapse = accountCollapse.collapse.filter(
-        (item) => item.name.toLowerCase() !== "sign in" && item.name.toLowerCase() !== "sign up"
+        (item) => !["sign in", "sign up"].includes(item.name.toLowerCase())
       );
 
       if (user.role === "admin") {
+        // Add admin dashboard route
         const dashboardRoute = {
-          name: "Dashboard",
+          name: "dashboard",
           route: `http://localhost:3006/dashboard?token=${localStorage.getItem("token")}`,
           icon: <Icon>dashboard</Icon>,
           external: true,
           target: "_blank",
+          key: "dashboard",
         };
-
-        // Add dashboard route at start or end of accountCollapse
         accountCollapse.collapse.unshift(dashboardRoute);
       }
     }

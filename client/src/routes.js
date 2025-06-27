@@ -5,6 +5,7 @@ import SignUp from "layouts/pages/authentication/sign-in/sign-up";
 import SignOutPage from "pages/LandingPages/SignOut";
 import Products from "pages/Presentation/sections/Products";
 import Profile from "pages/Presentation/sections/Profile";
+import Orders from "pages/Presentation/sections/MyOrders";
 
 const routes = [
   {
@@ -37,6 +38,18 @@ const routes = [
         name: "account",
         collapse: [
           {
+            name: "profile",
+            route: "/sections/profile",
+            component: <Profile />,
+            key: "profile",
+          },
+          {
+            name: "my order history",
+            route: "/sections/myorders",
+            component: <Orders />,
+            key: "myorders",
+          },
+          {
             name: "log out",
             route: "/logout",
             component: <SignOutPage />,
@@ -53,12 +66,6 @@ const routes = [
             route: "/pages/authentication/sign-in/sign-up",
             component: <SignUp />,
             key: "signup",
-          },
-          {
-            name: "profile",
-            route: "/sections/profile",
-            component: <Profile />,
-            key: "profile",
           },
         ],
       },

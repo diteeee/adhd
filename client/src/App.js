@@ -35,7 +35,12 @@ function AppContent() {
         return getRoutes(route.collapse);
       }
 
-      if ((!user || user === null) && route.route.includes("logout")) {
+      if (
+        (!user || user === null) &&
+        route.route.includes("logout") &&
+        route.route.includes("profile") &&
+        route.route.includes("myorders")
+      ) {
         console.log(`Filtering out route ${route.route} because user is not logged in.`);
         return;
       }

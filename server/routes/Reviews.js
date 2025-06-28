@@ -95,8 +95,8 @@ router.get('/user/:userID', auth, checkRole(["admin"]), async (req, res) => {
         const reviewsWithDetails = reviews.map((review, index) => ({
             reviewID: review._id,
             reviewUserID: review.reviewUserID,
-            userName: user.emri,
             reviewProductID: review.reviewProductID,
+            userName: users[index]?.emri,
             productName: products[index]?.emri,
             rating: review.rating,
             koment: review.koment
@@ -109,20 +109,29 @@ router.get('/user/:userID', auth, checkRole(["admin"]), async (req, res) => {
 });
 
 //delete
-router.delete('/:reviewID', auth, checkRole(["admin"]), async (req, res) => {
-    const { reviewID } = req.params;
+router.delete('/:reviewID', auth, async (req, res) => {
+  const { reviewID } = req.params;
+  console.log('Review ID:', reviewID);
+  console.log('User from req:', req.user); // Log the user details from the auth middleware
 
-    try {
-        const review = await Review.findByIdAndDelete(reviewID);
-
-        if (!review) {
-            return res.status(404).json({ message: 'Review not found' });
-        }
-
-        res.status(200).json({ message: 'Review deleted' });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to delete review' });
+  try {
+    const review = await Review.findById(reviewID);
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' });
     }
+
+    // Check if the signed-in user is the owner of the review
+    if (review.reviewUserID !== req.user.userID) {
+      return res.status(403).json({ error: 'You are not authorized to delete this review.' });
+    }
+
+    await Review.findByIdAndDelete(reviewID);
+    res.status(200).json({ message: 'Review deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    res.status(500).json({ error: 'Failed to delete review.' });
+  }
 });
+
 
 module.exports = router;

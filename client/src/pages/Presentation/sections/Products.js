@@ -424,7 +424,10 @@ const Products = () => {
                         "&:hover": { backgroundColor: "rgba(255, 255, 255, 1)" },
                         // zIndex: 10,
                       }}
-                      onClick={() => handleWishlistClick(product.productID)}
+                      onClick={(event) => {
+                        event.stopPropagation(); // Prevent card click event
+                        handleWishlistClick(product.productID);
+                      }}
                     >
                       {isProductInWishlist(product.productID) ? (
                         <FavoriteIcon color="error" />
@@ -478,7 +481,10 @@ const Products = () => {
                           <Button
                             variant="contained"
                             size="small"
-                            onClick={() => handleAddToCartClick(product)}
+                            onClick={(event) => {
+                              event.stopPropagation(); // Prevent the card click event
+                              handleAddToCartClick(product);
+                            }}
                           >
                             Add to Cart
                           </Button>

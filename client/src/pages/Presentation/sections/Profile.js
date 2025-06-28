@@ -46,8 +46,6 @@ LocationPicker.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-// --- ADD THIS FUNCTION ---
-
 function ProfilePage() {
   const { user, setUser } = useUser();
   const [isEditing, setIsEditing] = useState(false);

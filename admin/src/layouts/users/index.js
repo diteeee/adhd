@@ -7,6 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import Grid from "@mui/material/Grid";
@@ -17,8 +19,8 @@ import MDTypography from "components/MDTypography";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
+import { useNavigate } from "react-router-dom";
 
 function Users() {
   const [columns, setColumns] = useState([]);
@@ -34,6 +36,15 @@ function Users() {
     password: "",
     role: "User",
   });
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
+
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
   const token = localStorage.getItem("token");
 
@@ -41,6 +52,11 @@ function Users() {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+  };
+
+  // Helper to show snackbar
+  const showSnackbar = (message, severity = "info") => {
+    setSnackbar({ open: true, message, severity });
   };
 
   useEffect(() => {
@@ -63,7 +79,16 @@ function Users() {
         setColumns(cols);
 
         const formattedRows = users.map((user) => ({
-          emri: user.emri,
+          emri: (
+            <Button
+              variant="text"
+              color="info"
+              onClick={() => navigate(`/users/${user.userID}`)}
+              style={{ textTransform: "none", padding: 0, minWidth: 0 }}
+            >
+              {user.emri}
+            </Button>
+          ),
           mbiemri: user.mbiemri,
           nrTel: user.nrTel,
           email: user.email,
@@ -84,14 +109,62 @@ function Users() {
       })
       .catch((err) => {
         console.error("Failed to fetch users:", err);
-        alert("Authentication failed. Please log in again.");
+        showSnackbar("Authentication failed. Please log in again.", "error");
         window.location.href = "/login";
       });
+  };
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case "emri":
+      case "mbiemri":
+        if (!value) return "This field is required.";
+        if (!/^[A-Z][a-zA-Z]*$/.test(value))
+          return "Must start with a capital letter and contain only letters.";
+        return "";
+      case "nrTel":
+        if (!value) return "Phone number is required.";
+        if (!/^\d{5,15}$/.test(value)) return "Phone number must be 5-15 digits.";
+        return "";
+      case "email":
+        if (!value) return "Email is required.";
+        // Simple email regex
+        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value))
+          return "Invalid email address.";
+        return "";
+      case "password":
+        if (dialogType === "edit" && !value) return ""; // Allow empty password on edit (no change)
+        if (!value) return "Password is required.";
+        if (value.length < 8) return "Password must be at least 8 characters long.";
+        return "";
+      case "role":
+        if (!value) return "Role is required.";
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    Object.entries(userData).forEach(([key, value]) => {
+      const error = validateField(key, value);
+      if (error) newErrors[key] = error;
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (field, value) => {
+    setUserData({ ...userData, [field]: value });
+    // Validate this field on change
+    setErrors((prev) => ({ ...prev, [field]: validateField(field, value) }));
   };
 
   const handleEdit = (user) => {
     setUserData(user);
     setDialogType("edit");
+    setErrors({});
     setOpenDialog(true);
   };
 
@@ -105,6 +178,7 @@ function Users() {
       password: "",
       role: "User",
     });
+    setErrors({});
     setDialogType("add");
     setOpenDialog(true);
   };
@@ -113,13 +187,20 @@ function Users() {
     axios
       .delete(`http://localhost:3001/users/${userID}`, axiosConfig)
       .then(() => {
-        alert("User deleted.");
+        showSnackbar("User deleted successfully.", "success");
         fetchUsers();
       })
-      .catch((err) => console.error("Failed to delete user:", err));
+      .catch((err) => {
+        console.error("Failed to delete user:", err);
+        showSnackbar("Failed to delete user.", "error");
+      });
   };
 
   const handleSave = () => {
+    if (!validateForm()) {
+      showSnackbar("Please fix the errors in the form before saving.", "warning");
+      return;
+    }
     const { userID, ...payload } = userData;
     const method = dialogType === "edit" ? "put" : "post";
     const url =
@@ -129,11 +210,17 @@ function Users() {
 
     axios[method](url, payload, axiosConfig)
       .then(() => {
-        alert(dialogType === "edit" ? "User updated." : "User added.");
+        showSnackbar(
+          dialogType === "edit" ? "User updated successfully." : "User added successfully.",
+          "success"
+        );
         setOpenDialog(false);
         fetchUsers();
       })
-      .catch((err) => console.error("Save failed:", err));
+      .catch((err) => {
+        console.error("Save failed:", err);
+        showSnackbar("Save failed. Please try again.", "error");
+      });
   };
 
   return (
@@ -178,7 +265,6 @@ function Users() {
           </Grid>
         </Grid>
       </MDBox>
-      <Footer />
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit User" : "Add User"}</DialogTitle>
@@ -187,28 +273,36 @@ function Users() {
             fullWidth
             label="First Name"
             value={userData.emri}
-            onChange={(e) => setUserData({ ...userData, emri: e.target.value })}
+            error={!!errors.emri}
+            helperText={errors.emri}
+            onChange={(e) => handleChange("emri", e.target.value)}
             margin="normal"
           />
           <TextField
             fullWidth
             label="Last Name"
             value={userData.mbiemri}
-            onChange={(e) => setUserData({ ...userData, mbiemri: e.target.value })}
+            error={!!errors.mbiemri}
+            helperText={errors.mbiemri}
+            onChange={(e) => handleChange("mbiemri", e.target.value)}
             margin="normal"
           />
           <TextField
             fullWidth
             label="Phone Number"
             value={userData.nrTel}
-            onChange={(e) => setUserData({ ...userData, nrTel: e.target.value })}
+            error={!!errors.nrTel}
+            helperText={errors.nrTel}
+            onChange={(e) => handleChange("nrTel", e.target.value)}
             margin="normal"
           />
           <TextField
             fullWidth
             label="Email"
             value={userData.email}
-            onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+            error={!!errors.email}
+            helperText={errors.email}
+            onChange={(e) => handleChange("email", e.target.value)}
             margin="normal"
           />
           <TextField
@@ -216,7 +310,12 @@ function Users() {
             label="Password"
             type="password"
             value={userData.password}
-            onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+            error={!!errors.password}
+            helperText={
+              errors.password ||
+              (dialogType === "edit" ? "Leave blank to keep current password" : "")
+            }
+            onChange={(e) => handleChange("password", e.target.value)}
             margin="normal"
           />
           <TextField
@@ -225,26 +324,47 @@ function Users() {
             label="Role"
             variant="outlined"
             value={userData.role}
-            onChange={(e) => setUserData({ ...userData, role: e.target.value })}
+            error={!!errors.role}
+            helperText={errors.role}
+            onChange={(e) => handleChange("role", e.target.value)}
             margin="normal"
             SelectProps={{
               native: true,
             }}
           >
             <option value=""></option>
-            <option value="User">user</option>
-            <option value="Admin">admin</option>
+            <option value="User">User</option>
+            <option value="Admin">Admin</option>
           </TextField>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} color="info">
             Cancel
           </Button>
-          <Button onClick={handleSave} color="primary">
+          <Button
+            onClick={handleSave}
+            color="primary"
+            disabled={Object.values(errors).some((e) => e)}
+          >
             Save
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

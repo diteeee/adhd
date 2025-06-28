@@ -7,6 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -16,7 +18,6 @@ import MDTypography from "components/MDTypography";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 function Categories() {
@@ -27,6 +28,13 @@ function Categories() {
   const [categoryData, setCategoryData] = useState({
     categoryID: "",
     emri: "",
+  });
+
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
   });
 
   useEffect(() => {
@@ -85,7 +93,11 @@ function Categories() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(() => {
-        alert("Category deleted.");
+        setSnackbar({
+          open: true,
+          message: "Category deleted.",
+          severity: "success",
+        });
         fetchCategories();
       })
       .catch((err) => console.error("Failed to delete category:", err));
@@ -104,11 +116,19 @@ function Categories() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(() => {
-        alert(dialogType === "edit" ? "Category updated." : "Category added.");
+        setSnackbar({
+          open: true,
+          message: dialogType === "edit" ? "Category updated." : "Category added.",
+          severity: "success",
+        });
         setOpenDialog(false);
         fetchCategories();
       })
       .catch((err) => console.error("Save failed:", err));
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   return (
@@ -153,7 +173,6 @@ function Categories() {
           </Grid>
         </Grid>
       </MDBox>
-      <Footer />
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Category" : "Add Category"}</DialogTitle>
@@ -175,6 +194,17 @@ function Categories() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

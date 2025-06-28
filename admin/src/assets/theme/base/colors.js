@@ -1,32 +1,11 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-/**
- * The base colors for the Material Dashboard 2 React.
- * You can add new color using this file.
- * You can customized the colors for the entire Material Dashboard 2 React using thie file.
- */
-
 const colors = {
   background: {
-    default: "#f0f2f5",
+    default: "#f8f9fa", // very light gray, classic dashboard background
   },
 
   text: {
-    main: "#7b809a",
-    focus: "#7b809a",
+    main: "#343a40", // dark gray for primary text
+    focus: "#495057", // slightly lighter gray for focus states
   },
 
   transparent: {
@@ -35,58 +14,58 @@ const colors = {
 
   white: {
     main: "#ffffff",
-    focus: "#ffffff",
+    focus: "#f8f9fa",
   },
 
   black: {
-    light: "#000000",
-    main: "#000000",
-    focus: "#000000",
+    light: "#6c757d", // muted dark gray
+    main: "#212529", // almost black, for strong text
+    focus: "#495057",
   },
 
   primary: {
-    main: "#e91e63",
-    focus: "#e91e63",
+    main: "#e91e63", // vibrant pink (raspberry) for highlights and primary buttons
+    focus: "#c2185b",
   },
 
   secondary: {
-    main: "#7b809a",
-    focus: "#8f93a9",
+    main: "#868e96", // muted gray for secondary buttons, borders
+    focus: "#adb5bd",
   },
 
   info: {
-    main: "#1A73E8",
-    focus: "#1662C4",
+    main: "#17a2b8", // soft blue for info
+    focus: "#138496",
   },
 
   success: {
-    main: "#4CAF50",
-    focus: "#67bb6a",
+    main: "#28a745", // classic green success
+    focus: "#218838",
   },
 
   warning: {
-    main: "#fb8c00",
-    focus: "#fc9d26",
+    main: "#ffc107", // classic yellow warning
+    focus: "#e0a800",
   },
 
   error: {
-    main: "#F44335",
-    focus: "#f65f53",
+    main: "#dc3545", // classic red error
+    focus: "#bd2130",
   },
 
   light: {
-    main: "#f0f2f5",
-    focus: "#f0f2f5",
+    main: "#f8f9fa", // light gray background / container color
+    focus: "#e9ecef",
   },
 
   dark: {
-    main: "#344767",
-    focus: "#2c3c58",
+    main: "#343a40", // dark gray background or text
+    focus: "#212529",
   },
 
   grey: {
     100: "#f8f9fa",
-    200: "#f0f2f5",
+    200: "#e9ecef",
     300: "#dee2e6",
     400: "#ced4da",
     500: "#adb5bd",
@@ -98,165 +77,103 @@ const colors = {
 
   gradients: {
     primary: {
-      main: "#EC407A",
-      state: "#D81B60",
+      main: "#e91e63",
+      state: "#c2185b",
     },
 
     secondary: {
-      main: "#747b8a",
-      state: "#495361",
+      main: "#868e96",
+      state: "#adb5bd",
     },
 
     info: {
-      main: "#49a3f1",
-      state: "#1A73E8",
+      main: "#17a2b8",
+      state: "#138496",
     },
 
     success: {
-      main: "#66BB6A",
-      state: "#43A047",
+      main: "#28a745",
+      state: "#218838",
     },
 
     warning: {
-      main: "#FFA726",
-      state: "#FB8C00",
+      main: "#ffc107",
+      state: "#e0a800",
     },
 
     error: {
-      main: "#EF5350",
-      state: "#E53935",
+      main: "#dc3545",
+      state: "#bd2130",
     },
 
     light: {
-      main: "#EBEFF4",
-      state: "#CED4DA",
+      main: "#f8f9fa",
+      state: "#e9ecef",
     },
 
     dark: {
-      main: "#42424a",
-      state: "#191919",
-    },
-  },
-
-  socialMediaColors: {
-    facebook: {
-      main: "#3b5998",
-      dark: "#344e86",
-    },
-
-    twitter: {
-      main: "#55acee",
-      dark: "#3ea1ec",
-    },
-
-    instagram: {
-      main: "#125688",
-      dark: "#0e456d",
-    },
-
-    linkedin: {
-      main: "#0077b5",
-      dark: "#00669c",
-    },
-
-    pinterest: {
-      main: "#cc2127",
-      dark: "#b21d22",
-    },
-
-    youtube: {
-      main: "#e52d27",
-      dark: "#d41f1a",
-    },
-
-    vimeo: {
-      main: "#1ab7ea",
-      dark: "#13a3d2",
-    },
-
-    slack: {
-      main: "#3aaf85",
-      dark: "#329874",
-    },
-
-    dribbble: {
-      main: "#ea4c89",
-      dark: "#e73177",
-    },
-
-    github: {
-      main: "#24292e",
-      dark: "#171a1d",
-    },
-
-    reddit: {
-      main: "#ff4500",
-      dark: "#e03d00",
-    },
-
-    tumblr: {
-      main: "#35465c",
-      dark: "#2a3749",
+      main: "#343a40",
+      state: "#212529",
     },
   },
 
   badgeColors: {
     primary: {
-      background: "#f8b3ca",
-      text: "#cc084b",
+      background: "#f8bbd0",
+      text: "#880e4f",
     },
 
     secondary: {
-      background: "#d7d9e1",
-      text: "#6c757d",
+      background: "#e2e3e5",
+      text: "#495057",
     },
 
     info: {
-      background: "#aecef7",
-      text: "#095bc6",
+      background: "#bee5eb",
+      text: "#0c5460",
     },
 
     success: {
-      background: "#bce2be",
-      text: "#339537",
+      background: "#c3e6cb",
+      text: "#155724",
     },
 
     warning: {
-      background: "#ffd59f",
-      text: "#c87000",
+      background: "#ffeeba",
+      text: "#856404",
     },
 
     error: {
-      background: "#fcd3d0",
-      text: "#f61200",
+      background: "#f5c6cb",
+      text: "#721c24",
     },
 
     light: {
-      background: "#ffffff",
-      text: "#c7d3de",
+      background: "#f8f9fa",
+      text: "#6c757d",
     },
 
     dark: {
-      background: "#8097bf",
-      text: "#1e2e4a",
+      background: "#d6d8d9",
+      text: "#1b1e21",
     },
   },
 
   coloredShadows: {
-    primary: "#e91e62",
-    secondary: "#110e0e",
-    info: "#00bbd4",
-    success: "#4caf4f",
-    warning: "#ff9900",
-    error: "#f44336",
-    light: "#adb5bd",
-    dark: "#404040",
+    primary: "#c2185b",
+    secondary: "#adb5bd",
+    info: "#138496",
+    success: "#218838",
+    warning: "#e0a800",
+    error: "#bd2130",
+    light: "#e9ecef",
+    dark: "#212529",
   },
 
-  inputBorderColor: "#d2d6da",
+  inputBorderColor: "#ced4da",
 
   tabs: {
-    indicator: { boxShadow: "#ddd" },
+    indicator: { boxShadow: "#c2185b" },
   },
 };
 

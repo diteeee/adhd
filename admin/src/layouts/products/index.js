@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import {
   Button,
@@ -8,6 +8,10 @@ import {
   DialogContent,
   DialogTitle,
   InputLabel,
+  Select,
+  MenuItem,
+  Typography,
+  Stack,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -22,15 +26,17 @@ function Products() {
   const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]); // Added for brands
   const [selectedCategory, setSelectedCategory] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [productData, setProductData] = useState({
     emri: "",
     pershkrimi: "",
-    firma: "",
     cmimi: "",
     productCategoryID: "",
-    img: null,
+    imageURL: "",
+    brandID: "", // Added brandID
+    variants: [], // Initialize as an empty array
   });
 
   const token = localStorage.getItem("token");
@@ -42,12 +48,13 @@ function Products() {
 
   useEffect(() => {
     fetchCategories();
+    fetchBrands(); // Fetch brands
     setColumns([
       { Header: "Product ID", accessor: "productID" },
       { Header: "Image", accessor: "image" },
       { Header: "Name", accessor: "emri" },
       { Header: "Description", accessor: "pershkrimi" },
-      { Header: "Brand", accessor: "firma" },
+      { Header: "Brand", accessor: "brandName" }, // Updated column
       { Header: "Price", accessor: "cmimi" },
       { Header: "Category", accessor: "categoryName" },
       { Header: "Actions", accessor: "actions" },
@@ -69,6 +76,17 @@ function Products() {
       });
   };
 
+  const fetchBrands = () => {
+    axios
+      .get("http://localhost:3001/brands", axiosConfig)
+      .then((res) => {
+        setBrands(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch brands:", err);
+      });
+  };
+
   const fetchProducts = () => {
     axios
       .get("http://localhost:3001/products", axiosConfig)
@@ -81,14 +99,14 @@ function Products() {
           productID: p.productID,
           image: (
             <img
-              src={`http://localhost:3001/${p.imageURL.replace(/\\/g, "/")}`}
+              src={p.imageURL}
               alt={p.emri}
               style={{ width: "70px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
             />
           ),
           emri: p.emri,
           pershkrimi: p.pershkrimi,
-          firma: p.firma,
+          brandName: p.Brand?.name || "No Brand", // Added brand name
           cmimi: p.cmimi,
           categoryName: p.Category?.emri || "",
           actions: (
@@ -110,25 +128,34 @@ function Products() {
       });
   };
 
-  const handleDelete = (productID) => {
-    axios
-      .delete(`http://localhost:3001/products/${productID}`, axiosConfig)
-      .then(() => {
-        alert("Product deleted.");
-        fetchProducts();
-      })
-      .catch((err) => {
-        console.error("Delete failed:", err);
-      });
-  };
+  const handleEdit = async (product) => {
+    try {
+      // Fetch variants for the selected product
+      const { data: variants = [] } = await axios.get(
+        `http://localhost:3001/productVariants/products/${product.productID}`,
+        axiosConfig
+      );
 
-  const handleEdit = (product) => {
-    setProductData({
-      ...product,
-      img: null,
-      productCategoryID: product.productCategoryID,
-    });
-    setOpenDialog(true);
+      // Map the variants to the expected format
+      const formattedVariants = variants.map((variant) => ({
+        productVariantID: variant.productVariantID,
+        shade: variant.shade,
+        numri: variant.numri,
+        inStock: variant.inStock,
+      }));
+
+      // Set product data with fetched variants
+      setProductData({
+        ...product,
+        productCategoryID: product.productCategoryID,
+        brandID: product.brandID || "",
+        variants: formattedVariants,
+      });
+      setOpenDialog(true);
+    } catch (error) {
+      console.error("Failed to fetch product variants:", error);
+      alert("Unable to load variants for the selected product.");
+    }
   };
 
   const handleAdd = () => {
@@ -138,22 +165,23 @@ function Products() {
       firma: "",
       cmimi: "",
       productCategoryID: selectedCategory,
-      img: null,
+      imageURL: "",
+      brandID: "", // Reset brandID
+      variants: [], // Initialize as an empty array
     });
     setOpenDialog(true);
   };
 
   const handleSave = () => {
-    const formData = new FormData();
-    Object.entries(productData).forEach(([key, value]) => {
-      if (value) formData.append(key, value);
-    });
-
     const isEdit = productData.productID;
 
     const request = isEdit
-      ? axios.put(`http://localhost:3001/products/${productData.productID}`, formData, axiosConfig)
-      : axios.post("http://localhost:3001/products", formData, axiosConfig);
+      ? axios.put(
+          `http://localhost:3001/products/${productData.productID}`,
+          productData,
+          axiosConfig
+        )
+      : axios.post("http://localhost:3001/products", productData, axiosConfig);
 
     request
       .then(() => {
@@ -163,6 +191,56 @@ function Products() {
       })
       .catch((err) => {
         console.error("Save failed:", err);
+      });
+  };
+
+  const handleVariantChange = (name, value, index) => {
+    const updatedVariants = [...productData.variants];
+    updatedVariants[index][name] = value;
+    setProductData((prev) => ({ ...prev, variants: updatedVariants }));
+  };
+
+  const addVariant = () => {
+    setProductData((prev) => ({
+      ...prev,
+      variants: [...(prev.variants || []), { shade: "", numri: "", inStock: "" }],
+    }));
+  };
+
+  const removeVariant = async (variantID, index) => {
+    try {
+      if (!variantID) {
+        const updatedVariants = [...productData.variants];
+        updatedVariants.splice(index, 1); // Remove locally
+        setProductData((prev) => ({ ...prev, variants: updatedVariants }));
+        return; // Skip API call for unsaved variants
+      }
+
+      if (window.confirm("Are you sure you want to delete this variant?")) {
+        await axios.delete(`http://localhost:3001/productVariants/${variantID}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const updatedVariants = [...productData.variants];
+        updatedVariants.splice(index, 1); // Remove locally
+        setProductData((prev) => ({ ...prev, variants: updatedVariants }));
+        alert("Variant deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Error deleting variant:", error);
+      alert("Failed to delete variant.");
+    }
+  };
+
+  const handleDelete = (productID) => {
+    axios
+      .delete(`http://localhost:3001/products/${productID}`, axiosConfig)
+      .then(() => {
+        alert("Product deleted.");
+        fetchProducts();
+      })
+      .catch((err) => {
+        console.error("Delete failed:", err);
       });
   };
 
@@ -193,7 +271,6 @@ function Products() {
                   variant="outlined"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  style={{ marginTop: 20 }}
                   SelectProps={{ native: true }}
                 >
                   <option value="">Select Category</option>
@@ -249,25 +326,85 @@ function Products() {
           />
           <TextField
             fullWidth
-            label="Brand"
-            value={productData.firma}
-            onChange={(e) => setProductData({ ...productData, firma: e.target.value })}
-            margin="dense"
-          />
-          <TextField
-            fullWidth
             type="number"
             label="Price"
             value={productData.cmimi}
             onChange={(e) => setProductData({ ...productData, cmimi: e.target.value })}
             margin="dense"
           />
-          <InputLabel sx={{ mt: 2 }}>Product Image</InputLabel>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setProductData({ ...productData, img: e.target.files[0] })}
+          <TextField
+            fullWidth
+            select
+            label="Select Brand"
+            value={productData.brandID}
+            onChange={(e) => setProductData({ ...productData, brandID: e.target.value })}
+            margin="normal"
+            SelectProps={{ native: true }}
+          >
+            <option value=""></option>
+            {brands.map((brand) => (
+              <option key={brand.brandID} value={brand.brandID}>
+                {brand.name}
+              </option>
+            ))}
+          </TextField>
+          <TextField
+            fullWidth
+            label="Image URL"
+            value={productData.imageURL}
+            onChange={(e) => setProductData({ ...productData, imageURL: e.target.value })}
+            margin="dense"
           />
+          <Typography variant="h6" mt={2}>
+            Variants
+          </Typography>
+          {Array.isArray(productData.variants) &&
+            productData.variants.map((variant, index) => (
+              <Stack
+                key={variant.productVariantID || index}
+                direction="row"
+                spacing={2}
+                alignItems="center"
+                mt={1}
+              >
+                <TextField
+                  label="Shade"
+                  name="shade"
+                  value={variant.shade}
+                  onChange={(e) => handleVariantChange(e.target.name, e.target.value, index)}
+                  size="small"
+                />
+                <TextField
+                  label="Numri"
+                  name="numri"
+                  type="number"
+                  value={variant.numri}
+                  onChange={(e) => handleVariantChange(e.target.name, e.target.value, index)}
+                  size="small"
+                />
+                <TextField
+                  label="In Stock"
+                  name="inStock"
+                  type="number"
+                  value={variant.inStock}
+                  onChange={(e) => handleVariantChange(e.target.name, e.target.value, index)}
+                  size="small"
+                />
+                <Button
+                  color="error"
+                  onClick={() => {
+                    console.log("Deleting Variant ID:", variant.productVariantID);
+                    removeVariant(variant.productVariantID, index);
+                  }}
+                  size="small"
+                >
+                  Remove
+                </Button>
+              </Stack>
+            ))}
+          <Button onClick={addVariant} sx={{ mt: 1, color: "#fff" }} variant="contained">
+            Add Variant
+          </Button>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} color="info">

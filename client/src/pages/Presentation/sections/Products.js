@@ -463,7 +463,10 @@ const Products = () => {
                           <Button
                             size="small"
                             variant="contained"
-                            onClick={() => handleEdit(product)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleEdit(product);
+                            }}
                           >
                             Edit
                           </Button>

@@ -116,6 +116,13 @@ const SuccessPage = () => {
 
     yPos += 5;
 
+    if (order.discount && order.discount > 0) {
+      doc.text(`Discount: -$${Number(order.discount).toFixed(2)}`, pageWidth - 10, yPos, {
+        align: "right",
+      });
+      yPos += 10;
+    }
+
     // Total price with a line above it
     for (let i = 0; i < lineWidth; i += 4) {
       doc.text("-", 10 + i, yPos);
@@ -177,7 +184,12 @@ const SuccessPage = () => {
               </li>
             ))}
           </ul>
-          <Typography variant="h6" fontWeight="bold" style={{ fontWeight: "bold" }}>
+          {order.discount && order.discount > 0 && (
+            <Typography variant="subtitle1" color="secondary" fontWeight="bold" sx={{ mt: 1 }}>
+              Discount: -${Number(order.discount).toFixed(2)}
+            </Typography>
+          )}
+          <Typography variant="h4" fontWeight="bold" style={{ fontWeight: "bold" }}>
             Total: ${Number(order.totalPrice).toFixed(2)}
           </Typography>
         </div>

@@ -65,7 +65,19 @@ router.get("/:orderID", async (req, res) => {
     if (!order) {
       return res.status(404).json({ error: "Order not found." });
     }
-    res.json(order);
+
+    // Find payment to get discount if stored there or calculate manually
+    const payment = await Payment.findOne({
+      where: { paymentOrderID: order.orderID },
+    });
+
+    // Suppose payment or order has discount (if you stored it somewhere)
+    const discountAmount = order.discount || 0; // Or payment.discount or 0
+
+    res.json({
+      ...order.toJSON(),
+      discount: discountAmount,
+    });
   } catch (error) {
     res.status(500).json({ error: "Failed to retrieve order." });
   }
@@ -134,6 +146,7 @@ router.post("/checkout", async (req, res) => {
             orderUserID: userID,
             status: "pending",
             totalPrice,
+            discount: discountAmount,  // save discount here
         });
 
         for (const item of cartItems) {

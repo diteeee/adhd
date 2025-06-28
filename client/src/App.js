@@ -15,6 +15,7 @@ import Cart from "pages/Presentation/sections/Cart";
 import FloatingCart from "./components/FloatingCart";
 import WishlistDrawer from "pages/Presentation/sections/Wishlist"; // Your wishlist drawer component
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
+import ProductDetails from "./pages/Presentation/sections/ProductDetails";
 
 function AppContent() {
   const { user } = useUser();
@@ -91,6 +92,7 @@ function AppContent() {
         <Route path="/products" element={<Products />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/product/:productID" element={<ProductDetails />} />
       </Routes>
     </>
   );

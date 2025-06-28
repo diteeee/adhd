@@ -27,6 +27,7 @@ import { useUser } from "context/UserContext";
 import { CartContext } from "context/CartContext";
 import axios from "axios";
 import WishlistDrawer from "pages/Presentation/sections/Wishlist";
+import { useNavigate } from "react-router-dom";
 
 const initialProductState = {
   emri: "",
@@ -46,6 +47,7 @@ const Products = () => {
   const [wishlist, setWishlist] = useState([]); // Store wishlist items
   const [loading, setLoading] = useState(true);
   const { triggerCartRefresh } = useContext(CartContext);
+  const navigate = useNavigate();
 
   const [open, setOpen] = useState(false); // Add/Edit product dialog
   const [editingProduct, setEditingProduct] = useState(null);
@@ -330,6 +332,10 @@ const Products = () => {
     setWishlistOpen(false);
   };
 
+  const handleProductClick = (productID) => {
+    navigate(`/product/${productID}`);
+  };
+
   console.log(currentProductForShade, wishlistOpen, closeWishlist);
 
   return (
@@ -404,7 +410,10 @@ const Products = () => {
             ) : products.length > 0 ? (
               products.map((product) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.productID}>
-                  <Card sx={{ maxWidth: 345, position: "relative" }}>
+                  <Card
+                    sx={{ maxWidth: 345, position: "relative", cursor: "pointer" }}
+                    onClick={() => handleProductClick(product.productID)}
+                  >
                     {/* Heart Icon for Wishlist */}
                     <IconButton
                       sx={{

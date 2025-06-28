@@ -85,7 +85,7 @@ const MyOrders = () => {
 
   if (loading) {
     return (
-      <Container sx={{ mt: 5, textAlign: "center" }}>
+      <Container sx={{ textAlign: "center" }}>
         <CircularProgress />
       </Container>
     );
@@ -93,48 +93,33 @@ const MyOrders = () => {
 
   if (error) {
     return (
-      <Container sx={{ mt: 5, textAlign: "center" }}>
-        <Typography color="error">{error}</Typography>
+      <Container sx={{ textAlign: "center", paddingTop: "70px" }}>
+        <Typography color="error" mt={6}>
+          {error}
+        </Typography>
       </Container>
     );
   }
 
   return (
-    <Container sx={{ pt: 6 }} style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ mt: 8 }}
-        style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-      >
+    <Container sx={{ pt: 6 }} style={{ fontWeight: "bold" }}>
+      <Typography variant="h4" gutterBottom sx={{ mt: 8 }} style={{ fontWeight: "bold" }}>
         My Orders
       </Typography>
       {orders.map((order) => (
         <Card key={order.orderID} sx={{ mb: 3 }}>
           <CardContent>
-            <Typography
-              variant="h6"
-              fontWeight="bold"
-              style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-            >
+            <Typography variant="h6" fontWeight="bold" style={{ fontWeight: "bold" }}>
               Order #{order.orderID} - {order.status}
             </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-            >
+            <Typography variant="body2" color="text.secondary" style={{ fontWeight: "bold" }}>
               Total Price: $
               {order.totalPrice && !isNaN(order.totalPrice)
                 ? Number(order.totalPrice).toFixed(2)
                 : "N/A"}
             </Typography>
             <Divider sx={{ my: 2 }} />
-            <Grid
-              container
-              spacing={2}
-              style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-            >
+            <Grid container spacing={2} style={{ fontWeight: "bold" }}>
               {order.OrderItems.map((item) => (
                 <Grid item xs={12} md={6} key={item.orderItemID}>
                   <Card variant="outlined">
@@ -142,20 +127,14 @@ const MyOrders = () => {
                       <Typography
                         variant="subtitle1"
                         fontWeight="bold"
-                        style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
+                        style={{ fontWeight: "bold" }}
                       >
                         {item.ProductVariant?.Product?.emri || "Unknown Product"}
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-                      >
+                      <Typography variant="body2" style={{ fontWeight: "bold" }}>
                         Quantity: {item.sasia}
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-                      >
+                      <Typography variant="body2" style={{ fontWeight: "bold" }}>
                         Price: $
                         {item.cmimi && !isNaN(item.cmimi) ? Number(item.cmimi).toFixed(2) : "N/A"}
                       </Typography>
@@ -168,31 +147,18 @@ const MyOrders = () => {
             {/* Display associated returns */}
             {order.Returns && order.Returns.length > 0 && (
               <div style={{ marginTop: "1rem" }}>
-                <Typography
-                  variant="body1"
-                  fontWeight="bold"
-                  style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-                >
+                <Typography variant="body1" fontWeight="bold" style={{ fontWeight: "bold" }}>
                   Return Requests:
                 </Typography>
                 {order.Returns.map((ret) => (
                   <div key={ret.returnID} style={{ marginTop: "0.5rem" }}>
-                    <Typography
-                      variant="body2"
-                      style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-                    >
+                    <Typography variant="body2" style={{ fontWeight: "bold" }}>
                       <strong>Reason:</strong> {ret.arsyeja}
                     </Typography>
-                    <Typography
-                      variant="body2"
-                      style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-                    >
+                    <Typography variant="body2" style={{ fontWeight: "bold" }}>
                       <strong>Status:</strong> {ret.status}
                     </Typography>
-                    <Typography
-                      variant="body2"
-                      style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-                    >
+                    <Typography variant="body2" style={{ fontWeight: "bold" }}>
                       <strong>Requested At:</strong> {new Date(ret.createdAt).toLocaleString()}
                     </Typography>
                   </div>

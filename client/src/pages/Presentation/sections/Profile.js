@@ -65,17 +65,10 @@ function ProfilePage() {
                   alt={user.emri}
                   sx={{ width: 100, height: 100, mb: 2 }}
                 />
-                <Typography
-                  variant="h4"
-                  style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-                >
+                <Typography variant="h4" style={{ fontWeight: "bold" }}>
                   {user.emri} {user.mbiemri}
                 </Typography>
-                <Typography
-                  variant="body1"
-                  color="textSecondary"
-                  style={{ fontFamily: "Times New Roman, serif" }}
-                >
+                <Typography variant="body1" color="textSecondary">
                   {user.email}
                 </Typography>
               </MKBox>
@@ -86,11 +79,7 @@ function ProfilePage() {
           <Grid item xs={12} md={8}>
             <Card>
               <CardContent>
-                <Typography
-                  variant="h5"
-                  mb={2}
-                  style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-                >
+                <Typography variant="h5" mb={2} style={{ fontWeight: "bold" }}>
                   {isEditing ? "Edit Profile" : "Profile Details"}
                 </Typography>
                 {isEditing ? (
@@ -103,9 +92,6 @@ function ProfilePage() {
                           name="emri"
                           value={formData.emri || ""}
                           onChange={handleChange}
-                          inputProps={{
-                            style: { fontFamily: "Times New Roman, serif" },
-                          }}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -115,9 +101,6 @@ function ProfilePage() {
                           name="mbiemri"
                           value={formData.mbiemri || ""}
                           onChange={handleChange}
-                          inputProps={{
-                            style: { fontFamily: "Times New Roman, serif" },
-                          }}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -127,9 +110,6 @@ function ProfilePage() {
                           name="nrTel"
                           value={formData.nrTel || ""}
                           onChange={handleChange}
-                          inputProps={{
-                            style: { fontFamily: "Times New Roman, serif" },
-                          }}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -139,9 +119,6 @@ function ProfilePage() {
                           name="email"
                           value={formData.email || ""}
                           onChange={handleChange}
-                          inputProps={{
-                            style: { fontFamily: "Times New Roman, serif" },
-                          }}
                         />
                       </Grid>
                     </Grid>
@@ -166,18 +143,10 @@ function ProfilePage() {
                 ) : (
                   <>
                     <MKBox mb={2}>
-                      <Typography variant="h6" style={{ fontFamily: "Times New Roman, serif" }}>
-                        First Name: {user.emri || "N/A"}
-                      </Typography>
-                      <Typography variant="h6" style={{ fontFamily: "Times New Roman, serif" }}>
-                        Last Name: {user.mbiemri || "N/A"}
-                      </Typography>
-                      <Typography variant="h6" style={{ fontFamily: "Times New Roman, serif" }}>
-                        Phone Number: {user.nrTel || "N/A"}
-                      </Typography>
-                      <Typography variant="h6" style={{ fontFamily: "Times New Roman, serif" }}>
-                        Email: {user.email || "N/A"}
-                      </Typography>
+                      <Typography variant="h6">First Name: {user.emri || "N/A"}</Typography>
+                      <Typography variant="h6">Last Name: {user.mbiemri || "N/A"}</Typography>
+                      <Typography variant="h6">Phone Number: {user.nrTel || "N/A"}</Typography>
+                      <Typography variant="h6">Email: {user.email || "N/A"}</Typography>
                     </MKBox>
                     <MKBox mt={3}>
                       <MKButton

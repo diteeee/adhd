@@ -37,8 +37,23 @@ const Notifications = ({ userId }) => {
           autoHideDuration={8000}
           onClose={() => handleClose(index)}
           anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          sx={{
+            transform: "scale(1)",
+            animation: "popup 0.5s ease-in-out",
+          }}
         >
-          <Alert onClose={() => handleClose(index)} severity="info" sx={{ width: "100%" }}>
+          <Alert
+            onClose={() => handleClose(index)}
+            severity="info"
+            sx={{
+              width: "100%",
+              border: "2px solid #ff4081", // Bright pink border
+              borderRadius: "8px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)", // Stronger shadow
+              backgroundColor: "#ffccde", // Vibrant pinkish background
+              color: "#000", // Dark text for readability
+            }}
+          >
             {notif.mesazhi ? notif.mesazhi : "No message"}
           </Alert>
         </Snackbar>

@@ -63,7 +63,7 @@ function Presentation() {
               textAlign="center"
               px={{ xs: 6, lg: 12 }}
               mt={1}
-              sx={{ fontFamily: "Times New Roman, serif", fontSize: "1.2rem" }}
+              sx={{ fontSize: "1.2rem" }}
             >
               Unlock your beauty with our exclusive makeup collection. Indulge in luxury and
               elegance.

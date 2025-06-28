@@ -85,7 +85,7 @@ function DefaultNavbar({
     if (!user) {
       // Remove routes for logged-in users
       accountCollapse.collapse = accountCollapse.collapse.filter(
-        (item) => !["log out", "profile", "my orders"].includes(item.name.toLowerCase())
+        (item) => !["log out", "profile", "my order history"].includes(item.name.toLowerCase())
       );
     } else {
       // Remove routes for guests

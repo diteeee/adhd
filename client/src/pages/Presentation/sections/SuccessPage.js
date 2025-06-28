@@ -158,26 +158,15 @@ const SuccessPage = () => {
   }
 
   return (
-    <Container
-      sx={{ textAlign: "center", pt: 6 }}
-      style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-    >
-      <Typography
-        variant="body1"
-        sx={{ mb: 2, mt: 10 }}
-        style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-      >
+    <Container sx={{ textAlign: "center", pt: 6 }} style={{ fontWeight: "bold" }}>
+      <Typography variant="body1" sx={{ mb: 2, mt: 10 }} style={{ fontWeight: "bold" }}>
         Thank you for your purchase. Your order has been received.
       </Typography>
 
       {/* Order Summary */}
       {order.OrderItems && order.OrderItems.length > 0 && (
         <div>
-          <Typography
-            variant="h6"
-            gutterBottom
-            style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-          >
+          <Typography variant="h6" gutterBottom style={{ fontWeight: "bold" }}>
             Order Summary
           </Typography>
           <ul style={{ listStyleType: "none", padding: 0 }}>
@@ -188,11 +177,7 @@ const SuccessPage = () => {
               </li>
             ))}
           </ul>
-          <Typography
-            variant="h6"
-            fontWeight="bold"
-            style={{ fontFamily: "Times New Roman, serif", fontWeight: "bold" }}
-          >
+          <Typography variant="h6" fontWeight="bold" style={{ fontWeight: "bold" }}>
             Total: ${Number(order.totalPrice).toFixed(2)}
           </Typography>
         </div>

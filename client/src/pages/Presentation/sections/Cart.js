@@ -247,7 +247,7 @@ const CartPage = () => {
               <Typography variant="body1" sx={{ mb: 1 }}>
                 Total Items: {cartItems.length}
               </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
+              <Typography variant="body1" sx={{ mb: 1 }} style={{ fontWeight: "bold" }}>
                 Total Price: ${totalPrice.toFixed(2)}
               </Typography>
               <Button

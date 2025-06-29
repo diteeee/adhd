@@ -40,7 +40,6 @@ import Dashboard from "layouts/dashboard";
 import Users from "layouts/users";
 import Categories from "layouts/categories";
 import Products from "layouts/products";
-import ProductVariants from "layouts/productVariants";
 import Orders from "layouts/orders";
 import Payments from "layouts/payments";
 import Returns from "layouts/returns";
@@ -85,14 +84,6 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/products",
     component: <Products />,
-  },
-  {
-    type: "collapse",
-    name: "Product Variants",
-    key: "productVariants",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/productVariants",
-    component: <ProductVariants />,
   },
   {
     type: "collapse",

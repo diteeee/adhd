@@ -128,6 +128,18 @@ export default function ProductDetails() {
       });
   };
 
+  const handleDelete = (productID) => {
+    axios
+      .delete(`http://localhost:3001/products/${productID}`, axiosConfig)
+      .then(() => {
+        alert("Product deleted.");
+        fetchProducts();
+      })
+      .catch((err) => {
+        console.error("Delete failed:", err);
+      });
+  };
+
   if (loading)
     return (
       <DashboardLayout>
@@ -159,9 +171,6 @@ export default function ProductDetails() {
             <MDButton variant="outlined" color="info" onClick={() => navigate("/products")}>
               Back
             </MDButton>
-            <Button variant="contained" color="primary" sx={{ ml: 2 }} onClick={handleEdit}>
-              Edit
-            </Button>
 
             <Grid container spacing={4} alignItems="flex-start">
               {/* Left side: Image */}
@@ -234,6 +243,18 @@ export default function ProductDetails() {
                     />
                   </Stack>
                 ))}
+                <Stack direction="row" spacing={2} mt={3}>
+                  <MDButton variant="contained" color="primary" onClick={handleEdit}>
+                    Edit
+                  </MDButton>
+                  <MDButton
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleDelete(product.productID)}
+                  >
+                    Delete
+                  </MDButton>
+                </Stack>
               </Grid>
             </Grid>
           </MDBox>
@@ -273,11 +294,13 @@ export default function ProductDetails() {
             value={productData.brandID}
             onChange={(e) => setProductData({ ...productData, brandID: e.target.value })}
             margin="dense"
+            SelectProps={{ native: true }}
           >
+            <option value=""></option>
             {brands.map((brand) => (
-              <MenuItem key={brand.brandID} value={brand.brandID}>
+              <option key={brand.brandID} value={brand.brandID}>
                 {brand.name}
-              </MenuItem>
+              </option>
             ))}
           </TextField>
           <TextField

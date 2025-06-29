@@ -107,12 +107,14 @@ function Products() {
             />
           ),
           emri: (
-            <span
-              style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
+            <Button
+              variant="text"
+              color="info"
               onClick={() => navigate(`/products/${p.productID}`)}
+              style={{ textTransform: "none", padding: 0, minWidth: 0 }}
             >
               {p.emri}
-            </span>
+            </Button>
           ),
           pershkrimi: p.pershkrimi,
           brandName: p.Brand?.name || "No Brand",

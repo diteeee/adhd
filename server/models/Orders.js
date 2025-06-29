@@ -6,6 +6,10 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
+        paymentMethod: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         totalPrice: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -17,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
         status: {
             type: DataTypes.STRING,
             allowNull: false,
+        },
+        couponCode: {
+            type: DataTypes.STRING,
+            allowNull: true,
         },
     });
 

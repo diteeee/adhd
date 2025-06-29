@@ -57,6 +57,8 @@ import Users from "layouts/users";
 import UserDetail from "layouts/userDetail";
 import ProductDetails from "layouts/productDetails";
 import Products from "layouts/products";
+import Orders from "layouts/orders";
+import OrderDetails from "layouts/orderDetails";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -176,6 +178,8 @@ export default function App() {
           <Route path="/users/:userID" element={<UserDetail />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:productID" element={<ProductDetails />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/orders/:orderID" element={<OrderDetails />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>
@@ -204,6 +208,8 @@ export default function App() {
         <Route path="/users/:userID" element={<UserDetail />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:productID" element={<ProductDetails />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/orders/:orderID" element={<OrderDetails />} />
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </ThemeProvider>

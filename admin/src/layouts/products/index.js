@@ -12,6 +12,8 @@ import {
   MenuItem,
   Typography,
   Stack,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -19,7 +21,6 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 import { useNavigate } from "react-router-dom";
 
@@ -41,12 +42,18 @@ function Products() {
   });
   const navigate = useNavigate();
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
   const token = localStorage.getItem("token");
   const axiosConfig = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   useEffect(() => {
     fetchCategories();
@@ -74,7 +81,10 @@ function Products() {
         setCategories(res.data);
       })
       .catch((err) => {
-        console.error("Failed to fetch categories:", err);
+        setSnackbarMessage("Failed to fetch categories.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        console.error(err);
       });
   };
 
@@ -85,7 +95,10 @@ function Products() {
         setBrands(res.data);
       })
       .catch((err) => {
-        console.error("Failed to fetch brands:", err);
+        setSnackbarMessage("Failed to fetch brands.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        console.error(err);
       });
   };
 
@@ -93,9 +106,10 @@ function Products() {
     axios
       .get("http://localhost:3001/products", axiosConfig)
       .then((res) => {
-        const filtered = res.data.filter(
-          (product) => product.productCategoryID == selectedCategory
-        );
+        // Filter products only if a category is selected
+        const filtered = selectedCategory
+          ? res.data.filter((product) => product.productCategoryID == selectedCategory)
+          : res.data;
 
         const formatted = filtered.map((p) => ({
           productID: p.productID,
@@ -135,9 +149,16 @@ function Products() {
         setRows(formatted);
       })
       .catch((err) => {
-        console.error("Failed to fetch products:", err);
+        setSnackbarMessage("Failed to fetch products.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+        console.error(err);
       });
   };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [selectedCategory]);
 
   const handleEdit = async (product) => {
     try {
@@ -165,7 +186,9 @@ function Products() {
       setOpenDialog(true);
     } catch (error) {
       console.error("Failed to fetch product variants:", error);
-      alert("Unable to load variants for the selected product.");
+      setSnackbarMessage("Unable to load variants for the selected product.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -196,12 +219,17 @@ function Products() {
 
     request
       .then(() => {
-        alert(`Product ${isEdit ? "updated" : "added"} successfully.`);
+        setSnackbarMessage(`Product ${isEdit ? "updated" : "added"} successfully.`);
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         setOpenDialog(false);
         fetchProducts();
       })
       .catch((err) => {
         console.error("Save failed:", err);
+        setSnackbarMessage("Failed to edit product.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       });
   };
 
@@ -235,11 +263,15 @@ function Products() {
         const updatedVariants = [...productData.variants];
         updatedVariants.splice(index, 1); // Remove locally
         setProductData((prev) => ({ ...prev, variants: updatedVariants }));
-        alert("Variant deleted successfully!");
+        setSnackbarMessage("Product Variant deleted successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
       }
     } catch (error) {
       console.error("Error deleting variant:", error);
-      alert("Failed to delete variant.");
+      setSnackbarMessage("Failed to delete product variant.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -247,10 +279,15 @@ function Products() {
     axios
       .delete(`http://localhost:3001/products/${productID}`, axiosConfig)
       .then(() => {
-        alert("Product deleted.");
+        setSnackbarMessage("Product deleted successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         fetchProducts();
       })
       .catch((err) => {
+        setSnackbarMessage("Failed to delete product.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
         console.error("Delete failed:", err);
       });
   };
@@ -316,7 +353,6 @@ function Products() {
           </Grid>
         </Grid>
       </MDBox>
-      <Footer />
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth>
         <DialogTitle>{productData.productID ? "Edit Product" : "Add Product"}</DialogTitle>
@@ -426,6 +462,16 @@ function Products() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

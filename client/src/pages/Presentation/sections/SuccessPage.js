@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Container, Typography, CircularProgress, Button, Box } from "@mui/material";
 import { jsPDF } from "jspdf";
+import { useUser } from "context/UserContext";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -11,8 +12,10 @@ function useQuery() {
 const SuccessPage = () => {
   const query = useQuery();
   const orderID = query.get("orderID");
+  const sessionID = query.get("session_id");
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const { user } = useUser();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,19 +27,39 @@ const SuccessPage = () => {
       setLoading(false);
       return;
     }
-    axios
-      .get(`http://localhost:3001/orders/${orderID}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
+
+    const confirmPayment = async () => {
+      if (!sessionID) return; // no payment confirmation needed (e.g., cash payment)
+
+      try {
+        await axios.post(
+          "http://localhost:3001/payments/confirm",
+          { sessionId: sessionID },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // Payment confirmed on backend
+      } catch (err) {
+        setError("Payment confirmation failed.");
+        setLoading(false);
+        return;
+      }
+    };
+
+    const fetchOrder = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/orders/${orderID}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setOrder(res.data);
         setLoading(false);
-      })
-      .catch(() => {
+      } catch {
         setError("Failed to load order details.");
         setLoading(false);
-      });
-  }, [orderID, token]);
+      }
+    };
+
+    confirmPayment().then(fetchOrder);
+  }, [orderID, sessionID, token]);
 
   const generatePdfReceipt = () => {
     const doc = new jsPDF();
@@ -80,7 +103,7 @@ const SuccessPage = () => {
     doc.text(`Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, 10, yPos);
     yPos += 10;
 
-    // Dashed line separator (you could replace with a line as before)
+    // Dashed line separator
     const lineWidth = pageWidth - 20;
     for (let i = 0; i < lineWidth; i += 4) {
       doc.text("-", 10 + i, yPos);
@@ -200,6 +223,17 @@ const SuccessPage = () => {
           Print Receipt
         </Button>
       </Box>
+      {user.role === "admin" && orderID && (
+        <Box mt={2}>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => (window.location.href = `http://localhost:3006/orders/${orderID}`)}
+          >
+            Go to Admin Order Details
+          </Button>
+        </Box>
+      )}
     </Container>
   );
 };

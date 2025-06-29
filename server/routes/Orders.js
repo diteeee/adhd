@@ -8,12 +8,19 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Get all order
 router.get("/", async (req, res) => {
-    try {
-        const order = await Order.findAll({ include: User });
-        res.json(order);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve order." });
-    }
+  try {
+    const orders = await Order.findAll({
+      include: [
+        { model: User },          // Include user info
+        { model: Payment },       // Include payments info
+        { model: OrderItem, include: [ProductVariant] }
+      ],
+    });
+    res.json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to retrieve orders." });
+  }
 });
 
 // Get all orders for a specific user
@@ -59,6 +66,9 @@ router.get("/:orderID", async (req, res) => {
             },
           ],
         },
+        {
+          model: Payment, // Include Payment model
+        },
       ],
     });
 
@@ -66,36 +76,92 @@ router.get("/:orderID", async (req, res) => {
       return res.status(404).json({ error: "Order not found." });
     }
 
-    // Find payment to get discount if stored there or calculate manually
-    const payment = await Payment.findOne({
-      where: { paymentOrderID: order.orderID },
-    });
-
-    // Suppose payment or order has discount (if you stored it somewhere)
-    const discountAmount = order.discount || 0; // Or payment.discount or 0
-
-    res.json({
-      ...order.toJSON(),
-      discount: discountAmount,
-    });
+    res.json(order);
   } catch (error) {
+    console.error("Failed to retrieve order:", error);
     res.status(500).json({ error: "Failed to retrieve order." });
   }
 });
 
+
 // Create new order
 router.post("/", async (req, res) => {
-    try {
-        const { status, orderUserID } = req.body;
-        const user = await User.findByPk(orderUserID);
-        if (!user) {
-            return res.status(404).json({ error: "User not found." });
-        }
-        const newOrder = await Order.create({ status, orderUserID });
-        res.status(201).json(newOrder);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to create order." });
+  try {
+    const { orderUserID, paymentMethod, couponCode, status, orderItems } = req.body;
+
+    // Validate user
+    const user = await User.findByPk(orderUserID);
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
+      return res.status(400).json({ error: "Order items are required." });
     }
+
+    // Calculate total price from orderItems
+    let totalPrice = 0;
+    for (const item of orderItems) {
+      const productVariant = await ProductVariant.findByPk(item.productVariantID, {
+        include: [Product],
+      });
+
+      if (!productVariant || !productVariant.Product) {
+        return res.status(400).json({ error: `Product variant ${item.productVariantID} not found.` });
+      }
+
+      const price = Number(productVariant.Product.cmimi);
+      totalPrice += price * item.quantity;
+    }
+
+    // Apply coupon discount if present
+    let discountAmount = 0;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ where: { kodi: couponCode } });
+      if (!coupon) return res.status(400).json({ error: "Invalid coupon code." });
+      discountAmount = Number(coupon.shuma) || 0;
+      totalPrice = Math.max(totalPrice - discountAmount, 0);
+    }
+
+    // Create order
+    const newOrder = await Order.create({
+      orderUserID,
+      paymentMethod,
+      couponCode,
+      status,
+      totalPrice: totalPrice.toFixed(2),
+      discount: discountAmount.toFixed(2),
+    });
+
+    // Create order items
+    for (const item of orderItems) {
+      const productVariant = await ProductVariant.findByPk(item.productVariantID, {
+        include: [Product],
+      });
+      const price = Number(productVariant.Product.cmimi);
+      await OrderItem.create({
+        sasia: item.quantity,
+        cmimi: price * item.quantity,
+        orderItemOrderID: newOrder.orderID,
+        orderItemProductVariantID: item.productVariantID,
+      });
+    }
+
+    // Create payment
+    const newPayment = await Payment.create({
+      metoda: paymentMethod || "unknown", // Default to "unknown" if not provided
+      status: "pending", // Default status for payment
+      data: {}, // Add any necessary initial data here
+      paymentOrderID: newOrder.orderID, // Link payment to the created order
+    });
+
+    res.status(201).json({ 
+      message: "Order and payment created successfully.",
+      order: newOrder,
+      payment: newPayment,
+    });
+  } catch (error) {
+    console.error("Failed to create order:", error);
+    res.status(500).json({ error: "Failed to create order." });
+  }
 });
 
 // POST /checkout
@@ -146,6 +212,8 @@ router.post("/checkout", async (req, res) => {
             orderUserID: userID,
             status: "pending",
             totalPrice,
+            couponCode,  // <- you pass couponCode here
+            paymentMethod,
             discount: discountAmount,  // save discount here
         });
 
@@ -160,12 +228,11 @@ router.post("/checkout", async (req, res) => {
             });
         }
 
-        const payment = await Payment.create({
-            metoda: paymentMethod,
-            status: 'pending',
-            data: {},
-            paymentOrderID: order.orderID,
-            amount: totalPrice, // optional: store final amount here
+        const newPayment = await Payment.create({
+          metoda: paymentMethod || "unknown", // Default to "unknown" if not provided
+          status: "pending", // Default status for payment
+          data: {}, // Add any necessary initial data here
+          paymentOrderID: order.orderID, // Link payment to the created order
         });
 
         await Cart.destroy({ where: { cartUserID: userID } });
@@ -173,7 +240,7 @@ router.post("/checkout", async (req, res) => {
         res.status(201).json({
             message: "Checkout initialized",
             orderID: order.orderID,
-            paymentID: payment.paymentID,
+            paymentID: newPayment.paymentID,
             totalPrice,
             discountAmount,
         });
@@ -226,10 +293,12 @@ router.post("/create-checkout-session", async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: `http://localhost:3000/success?orderID=${order.orderID}`,
+      success_url: `http://localhost:3000/success?orderID=${order.orderID}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: 'http://localhost:3000/cart',
       metadata: {
         orderID: order.orderID,
+        paymentID: payment.paymentID.toString(),
+        userID: order.orderUserID.toString(), // if you want to clear the cart
       },
     });
 
@@ -237,6 +306,95 @@ router.post("/create-checkout-session", async (req, res) => {
   } catch (error) {
     console.error("Stripe error:", error);
     res.status(500).json({ error: "Failed to create Stripe session" });
+  }
+});
+
+// Update existing order (admin)
+router.put("/:orderID", auth, checkRole(["admin"]), async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const { orderUserID, paymentMethod, couponCode, status, orderItems } = req.body;
+
+    const order = await Order.findByPk(orderID);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+
+    // Validate user
+    const user = await User.findByPk(orderUserID);
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
+      return res.status(400).json({ error: "Order items are required." });
+    }
+
+    // Calculate total price from orderItems
+    let totalPrice = 0;
+    for (const item of orderItems) {
+      const productVariant = await ProductVariant.findByPk(item.productVariantID, {
+        include: [Product],
+      });
+
+      if (!productVariant || !productVariant.Product) {
+        return res.status(400).json({ error: `Product variant ${item.productVariantID} not found.` });
+      }
+
+      const price = Number(productVariant.Product.cmimi);
+      totalPrice += price * item.quantity;
+    }
+
+    // Apply coupon discount if no coupon was applied previously
+    let discountAmount = Number(order.discount || 0); // Start with existing discount
+    if (!order.couponCode && couponCode) {
+      const coupon = await Coupon.findOne({ where: { kodi: couponCode } });
+      if (!coupon) return res.status(400).json({ error: "Invalid coupon code." });
+      discountAmount = Number(coupon.shuma) || 0;
+      totalPrice = Math.max(totalPrice - discountAmount, 0);
+
+      // Update the order's coupon code
+      await order.update({ couponCode });
+    } else if (order.couponCode && couponCode && order.couponCode !== couponCode) {
+      return res.status(400).json({ error: "A coupon is already applied and cannot be changed." });
+    } else {
+      totalPrice = Math.max(totalPrice - discountAmount, 0);
+    }
+
+    // Update order data (excluding couponCode unless applied above)
+    await order.update({
+      orderUserID,
+      paymentMethod,
+      status,
+      totalPrice: totalPrice.toFixed(2),
+      discount: discountAmount.toFixed(2),
+    });
+
+    // Also update payment method in Payment model(s) linked to this order
+    await Payment.update(
+      { metoda: paymentMethod },
+      { where: { paymentOrderID: orderID } }
+    );
+
+    // Delete old order items
+    await OrderItem.destroy({ where: { orderItemOrderID: orderID } });
+
+    // Create new order items
+    for (const item of orderItems) {
+      const productVariant = await ProductVariant.findByPk(item.productVariantID, {
+        include: [Product],
+      });
+      const price = Number(productVariant.Product.cmimi);
+      await OrderItem.create({
+        sasia: item.quantity,
+        cmimi: price * item.quantity,
+        orderItemOrderID: orderID,
+        orderItemProductVariantID: item.productVariantID,
+      });
+    }
+
+    res.json({ message: "Order and payment updated successfully.", order });
+  } catch (error) {
+    console.error("Failed to update order:", error);
+    res.status(500).json({ error: "Failed to update order." });
   }
 });
 

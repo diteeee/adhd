@@ -56,25 +56,34 @@ router.post("/confirm", async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === "paid") {
-      // Extract metadata
+      // Extract metadata (ensure these were set when creating session)
       const { orderID, paymentID, userID } = session.metadata;
+
+      if (!orderID || !paymentID) {
+        return res.status(400).json({ error: "Missing orderID or paymentID in session metadata." });
+      }
 
       // Find payment record in DB
       const payment = await Payment.findByPk(paymentID);
       if (!payment) return res.status(404).json({ error: "Payment not found." });
 
-      // Update payment status and transaction ID
+      // Update payment status and transaction data (payment_intent is the Stripe payment id)
       await payment.update({
         status: "completed",
         data: { transactionID: session.payment_intent },
       });
 
-      // Update order status
+      // Update order status (mark as paid/completed)
       const order = await Order.findByPk(orderID);
-      if (order) await order.update({ status: "paid" });
+      if (order) {
+        await order.update({ status: "paid" });
+      }
 
-      // Clear the user's cart now that payment succeeded
-      await Cart.destroy({ where: { cartUserID: userID } });
+      // Clear user's cart if userID exists
+      if (userID) {
+        const { Cart } = require("../models"); // require here to avoid circular import if needed
+        await Cart.destroy({ where: { cartUserID: userID } });
+      }
 
       return res.json({
         message: "Payment confirmed successfully. Order paid and cart cleared.",
@@ -86,7 +95,7 @@ router.post("/confirm", async (req, res) => {
     }
   } catch (error) {
     console.error("Payment confirmation error:", error);
-    res.status(500).json({ error: "Failed to confirm payment.", details: error.message });
+    return res.status(500).json({ error: "Failed to confirm payment.", details: error.message });
   }
 });
 
@@ -103,6 +112,32 @@ router.put("/:paymentID", auth, checkRole(["admin"]), async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: "Failed to update payment." });
     }
+});
+
+// Update payment status and order status accordingly
+router.put("/:paymentID/status", auth, checkRole(["admin"]), async (req, res) => {
+  try {
+    const { status } = req.body;
+    const payment = await Payment.findByPk(req.params.paymentID);
+    if (!payment) {
+      return res.status(404).json({ error: "Payment not found." });
+    }
+
+    // Update payment status
+    await payment.update({ status });
+
+    // If payment status is completed, update related order status to 'paid'
+    if (status === "completed") {
+      const order = await Order.findByPk(payment.paymentOrderID);
+      if (order) {
+        await order.update({ status: "paid" });
+      }
+    }
+
+    res.json({ payment, message: "Payment and order status updated." });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update payment and order status." });
+  }
 });
 
 // Delete payment by ID

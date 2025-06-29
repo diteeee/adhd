@@ -13,6 +13,8 @@ import {
   DialogContent,
   DialogTitle,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -45,6 +47,12 @@ export default function ProductDetails() {
     variants: [],
   });
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
+
   // Function to fetch product + variants + brands data
   const fetchProductDetails = async () => {
     setLoading(true);
@@ -65,6 +73,9 @@ export default function ProductDetails() {
       setBrands(brandsRes.data);
     } catch (error) {
       console.error("Failed to load product details:", error);
+      setSnackbarMessage("Failed to fetch products.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
     setLoading(false);
   };
@@ -120,11 +131,17 @@ export default function ProductDetails() {
     request
       .then(() => {
         alert(`Product ${isEdit ? "updated" : "added"} successfully.`);
+        setSnackbarMessage(`Product ${isEdit ? "updated" : "added"} successfully.`);
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         setOpenDialog(false);
         fetchProductDetails();
       })
       .catch((err) => {
         console.error("Save failed:", err);
+        setSnackbarMessage("Failed to edit product.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       });
   };
 
@@ -132,10 +149,15 @@ export default function ProductDetails() {
     axios
       .delete(`http://localhost:3001/products/${productID}`, axiosConfig)
       .then(() => {
-        alert("Product deleted.");
-        fetchProducts();
+        setSnackbarMessage("Product deleted successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
+        navigate("/products");
       })
       .catch((err) => {
+        setSnackbarMessage("Failed to delete product.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
         console.error("Delete failed:", err);
       });
   };
@@ -356,6 +378,16 @@ export default function ProductDetails() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

@@ -41,7 +41,6 @@ import Users from "layouts/users";
 import Categories from "layouts/categories";
 import Products from "layouts/products";
 import Orders from "layouts/orders";
-import Payments from "layouts/payments";
 import Returns from "layouts/returns";
 import Coupons from "layouts/coupons";
 import Wishlists from "layouts/wishlists";
@@ -92,14 +91,6 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/orders",
     component: <Orders />,
-  },
-  {
-    type: "collapse",
-    name: "Payments",
-    key: "payments",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/payments",
-    component: <Payments />,
   },
   {
     type: "collapse",

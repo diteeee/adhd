@@ -21,6 +21,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
+import { useNavigate } from "react-router-dom";
 
 function Products() {
   const [columns, setColumns] = useState([]);
@@ -38,6 +39,7 @@ function Products() {
     brandID: "", // Added brandID
     variants: [], // Initialize as an empty array
   });
+  const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
   const axiosConfig = {
@@ -104,9 +106,16 @@ function Products() {
               style={{ width: "70px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
             />
           ),
-          emri: p.emri,
+          emri: (
+            <span
+              style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
+              onClick={() => navigate(`/products/${p.productID}`)}
+            >
+              {p.emri}
+            </span>
+          ),
           pershkrimi: p.pershkrimi,
-          brandName: p.Brand?.name || "No Brand", // Added brand name
+          brandName: p.Brand?.name || "No Brand",
           cmimi: p.cmimi,
           categoryName: p.Category?.emri || "",
           actions: (

@@ -55,6 +55,8 @@ import brandDark from "assets/images/logo-ct-dark.png";
 
 import Users from "layouts/users";
 import UserDetail from "layouts/userDetail";
+import ProductDetails from "layouts/productDetails";
+import Products from "layouts/products";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -172,6 +174,8 @@ export default function App() {
           {getRoutes(routes)}
           <Route path="/users" element={<Users />} />
           <Route path="/users/:userID" element={<UserDetail />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:productID" element={<ProductDetails />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>
@@ -198,6 +202,8 @@ export default function App() {
         {getRoutes(routes)}
         <Route path="/users" element={<Users />} />
         <Route path="/users/:userID" element={<UserDetail />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/products/:productID" element={<ProductDetails />} />
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </ThemeProvider>

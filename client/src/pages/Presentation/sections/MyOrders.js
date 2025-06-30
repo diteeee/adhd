@@ -15,6 +15,7 @@ import {
   TextField,
   DialogActions,
 } from "@mui/material";
+import { jsPDF } from "jspdf";
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -42,6 +43,111 @@ const MyOrders = () => {
         setLoading(false);
       });
   }, [token]);
+
+  // Reusable function to generate PDF receipt for any order
+  const generatePdfReceipt = (order) => {
+    const doc = new jsPDF();
+
+    doc.setFont("courier");
+    doc.setFontSize(12);
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 10;
+
+    // Store info (centered)
+    doc.setFontSize(14);
+    doc.text("Celestia", pageWidth / 2, yPos, { align: "center" });
+    yPos += 7;
+    doc.setFontSize(10);
+    doc.text("123 Beauty Ave, Glam City", pageWidth / 2, yPos, { align: "center" });
+    yPos += 5;
+    doc.text("Phone: (555) 123-4567", pageWidth / 2, yPos, { align: "center" });
+    yPos += 10;
+
+    // User info (left aligned)
+    if (order.User) {
+      doc.setFontSize(11);
+      doc.text(`Customer: ${order.User.emri} ${order.User.mbiemri}`, 10, yPos);
+      yPos += 6;
+      doc.text(`Email: ${order.User.email}`, 10, yPos);
+      yPos += 6;
+      doc.text(`Phone: ${order.User.nrTel}`, 10, yPos);
+      yPos += 10;
+    }
+
+    // Receipt title and order info (left aligned)
+    doc.setFontSize(12);
+    doc.text("RECEIPT", 10, yPos);
+    yPos += 7;
+    doc.setFontSize(10);
+    doc.text(`Order: ${order.orderID}`, 10, yPos);
+    yPos += 7;
+
+    const now = new Date();
+    doc.text(`Date: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, 10, yPos);
+    yPos += 10;
+
+    // Dashed line separator
+    const lineWidth = pageWidth - 20;
+    for (let i = 0; i < lineWidth; i += 4) {
+      doc.text("-", 10 + i, yPos);
+    }
+    yPos += 7;
+
+    // Table headers
+    doc.setFontSize(10);
+    doc.text("QTY", 10, yPos);
+    doc.text("ITEM", 30, yPos);
+    doc.text("PRICE", pageWidth - 40, yPos, { align: "right" });
+    yPos += 6;
+
+    // Another dashed line
+    for (let i = 0; i < lineWidth; i += 4) {
+      doc.text("-", 10 + i, yPos);
+    }
+    yPos += 6;
+
+    // Items
+    if (order.OrderItems && order.OrderItems.length > 0) {
+      order.OrderItems.forEach((item) => {
+        const qty = item.sasia.toString();
+        const name = item.ProductVariant?.Product?.emri || "Product";
+        const price = Number(item.cmimi).toFixed(2);
+
+        doc.text(qty, 10, yPos);
+        doc.text(name, 30, yPos);
+        doc.text(`$${price}`, pageWidth - 10, yPos, { align: "right" });
+        yPos += 6;
+      });
+    }
+
+    yPos += 5;
+
+    if (order.discount && order.discount > 0) {
+      doc.text(`Discount: -$${Number(order.discount).toFixed(2)}`, pageWidth - 10, yPos, {
+        align: "right",
+      });
+      yPos += 10;
+    }
+
+    // Total price with a line above it
+    for (let i = 0; i < lineWidth; i += 4) {
+      doc.text("-", 10 + i, yPos);
+    }
+    yPos += 7;
+
+    doc.setFontSize(12);
+    doc.text(`TOTAL: $${Number(order.totalPrice).toFixed(2)}`, pageWidth - 10, yPos, {
+      align: "right",
+    });
+    yPos += 15;
+
+    // Footer message centered
+    doc.setFontSize(10);
+    doc.text("Thank you for shopping with us!", pageWidth / 2, yPos, { align: "center" });
+
+    doc.save(`YourOrder.pdf`);
+  };
 
   const handleOpenDialog = (order) => {
     setSelectedOrder(order);
@@ -165,13 +271,18 @@ const MyOrders = () => {
                 ))}
               </div>
             )}
+
             <Button
               variant="contained"
-              sx={{ mt: 2 }}
+              sx={{ mt: 2, mr: 2 }}
               onClick={() => handleOpenDialog(order)}
               disabled={!!order.Returns.length} // Disable if there are any returns
             >
               Return Order
+            </Button>
+
+            <Button color="error" sx={{ mt: 2 }} onClick={() => generatePdfReceipt(order)}>
+              Print Receipt
             </Button>
           </CardContent>
         </Card>
@@ -198,10 +309,7 @@ const MyOrders = () => {
             </Typography>
           )}
           {successMessage && (
-            <Typography
-              style={{ color: "#88d498", fontWeight: "bold" }} // Directly set the color
-              variant="body2"
-            >
+            <Typography style={{ color: "#88d498", fontWeight: "bold" }} variant="body2">
               {successMessage}
             </Typography>
           )}

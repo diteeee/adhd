@@ -175,10 +175,10 @@ function ContactUs() {
             </MKTypography>
 
             <MKTypography variant="body1" color="text" mb={2}>
-              <strong>Address:</strong> 123 Makeup Blvd, Beauty City, 45678
+              <strong>Address:</strong> 123 Makeup Ave, Glam City
             </MKTypography>
             <MKTypography variant="body1" color="text" mb={2}>
-              <strong>Phone:</strong> +1 (234) 567-890
+              <strong>Phone:</strong> (555) 123-4567
             </MKTypography>
             <MKTypography variant="body1" color="text" mb={2}>
               <strong>Email:</strong> contact@makeupstore.com

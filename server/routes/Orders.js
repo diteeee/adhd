@@ -23,6 +23,45 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Get user by ID including orders and payments
+router.get("/user/:userID", auth, async (req, res) => {
+  try {
+    const { userID } = req.params;
+
+    // Fetch the user by ID
+    const user = await User.findByPk(userID, {
+      include: [
+        {
+          model: Order, // Include related orders
+          include: [
+            {
+              model: OrderItem, // Include items in each order
+              include: [
+                {
+                  model: ProductVariant, // Include product variant details
+                  include: [Product], // Include product details
+                },
+              ],
+            },
+            {
+              model: Payment, // Include payment information
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Failed to retrieve user details:", error);
+    res.status(500).json({ error: "Failed to retrieve user details." });
+  }
+});
+
 // Get all orders for a specific user
 router.get("/user", auth, async (req, res) => {
     try {

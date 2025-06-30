@@ -12,6 +12,11 @@ import MDButton from "components/MDButton";
 import Card from "@mui/material/Card";
 import Grid from "@mui/material/Grid";
 
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+
 import {
   Dialog,
   DialogTitle,
@@ -74,10 +79,15 @@ function UserDetail() {
     severity: "success",
   });
 
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
   const [address, setAddress] = useState(null);
   const [mapPosition, setMapPosition] = useState(null);
   const [addressLoading, setAddressLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [returnsByOrder, setReturnsByOrder] = useState({});
+  const [loadingReturns, setLoadingReturns] = useState({});
 
   // Reverse geocoding to fetch address details
   const reverseGeocode = async (latlng) => {
@@ -108,6 +118,18 @@ function UserDetail() {
         setUserData(res.data);
       })
       .catch((err) => console.error("Failed to fetch user:", err));
+  }, [userID]);
+
+  useEffect(() => {
+    setLoadingOrders(true);
+    axios
+      .get(`http://localhost:3001/orders/user/${userID}`, axiosConfig)
+      .then((res) => {
+        console.log("Orders response:", res.data); // Log the response to check its structure
+        setOrders(res.data.Orders || []); // Extract the Orders array, fallback to empty array if undefined
+      })
+      .catch((err) => console.error("Failed to fetch orders:", err))
+      .finally(() => setLoadingOrders(false));
   }, [userID]);
 
   // Fetch address
@@ -269,6 +291,68 @@ function UserDetail() {
           console.error("Delete failed:", err);
           alert("Failed to delete user.");
         });
+    }
+  };
+
+  const fetchReturnsForOrder = async (orderID) => {
+    setLoadingReturns((prev) => ({ ...prev, [orderID]: true }));
+
+    try {
+      const res = await axios.get(`http://localhost:3001/returns/orders/${orderID}`, axiosConfig);
+      // returns are inside res.data.Returns or similar — check backend response
+      setReturnsByOrder((prev) => ({ ...prev, [orderID]: res.data.Returns || [] }));
+    } catch (error) {
+      console.error(`Failed to fetch returns for order ${orderID}:`, error);
+      setReturnsByOrder((prev) => ({ ...prev, [orderID]: [] }));
+    } finally {
+      setLoadingReturns((prev) => ({ ...prev, [orderID]: false }));
+    }
+  };
+
+  useEffect(() => {
+    if (orders && orders.length) {
+      orders.forEach((order) => {
+        fetchReturnsForOrder(order.orderID);
+      });
+    }
+  }, [orders]);
+
+  const updateReturnStatus = async (returnID, returnOrderID) => {
+    try {
+      setLoading(true);
+      await axios.put(
+        `http://localhost:3001/returns/${returnID}`,
+        { status: "confirmed", returnOrderID },
+        axiosConfig
+      );
+
+      // Refetch all orders for the user (userID must be in your component's scope)
+      const ordersRes = await axios.get(`http://localhost:3001/orders/user/${userID}`, axiosConfig);
+      const updatedOrders = ordersRes.data.Orders || [];
+      setOrders(updatedOrders);
+
+      // Clear the returnsByOrder for safety (since one order was deleted)
+      setReturnsByOrder({});
+
+      // Optionally, refetch returns for all remaining orders:
+      for (const order of updatedOrders) {
+        fetchReturnsForOrder(order.orderID);
+      }
+
+      setSnackbar({
+        open: true,
+        message: "Return status updated and orders refreshed.",
+        severity: "success",
+      });
+    } catch (error) {
+      console.error("Failed to update return status:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to update return status.",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -487,6 +571,145 @@ function UserDetail() {
                     </Marker>
                   )}
                 </MapContainer>
+              </MDBox>
+            </Card>
+          </Grid>
+          {/* Order History */}
+          <Grid item xs={12}>
+            <Card>
+              <MDBox p={3}>
+                <MDTypography variant="h6">Order History</MDTypography>
+                <Grid item xs={12}>
+                  <MDBox p={3}>
+                    {loadingOrders ? (
+                      <p>Loading orders...</p>
+                    ) : Array.isArray(orders) && orders.length > 0 ? (
+                      <Grid container spacing={3}>
+                        {orders.map((order) => (
+                          <Grid item xs={12} key={order.orderID}>
+                            <Card variant="outlined">
+                              <MDBox p={3}>
+                                {/* Order Details */}
+                                <MDTypography variant="h6">
+                                  <strong>Order ID:</strong> {order.orderID}
+                                </MDTypography>
+                                <MDTypography variant="body2" mb={2}>
+                                  <strong>Date:</strong>{" "}
+                                  {new Date(order.createdAt).toLocaleDateString()}
+                                </MDTypography>
+                                <MDTypography variant="body1" mb={2}>
+                                  <strong>Status:</strong> {order.status}
+                                </MDTypography>
+                                <MDTypography variant="body1" mb={2}>
+                                  <strong>Total:</strong> ${parseFloat(order.totalPrice).toFixed(2)}
+                                </MDTypography>
+
+                                {/* Order Items */}
+                                <MDTypography variant="h6" mb={2}>
+                                  Order Items
+                                </MDTypography>
+                                <Grid container spacing={2}>
+                                  {Array.isArray(order.OrderItems) &&
+                                  order.OrderItems.length > 0 ? (
+                                    order.OrderItems.map((item) => (
+                                      <Grid item xs={12} sm={6} md={4} key={item.orderItemID}>
+                                        <Card>
+                                          <MDBox display="flex" alignItems="center" gap={2} p={2}>
+                                            <img
+                                              src={item.ProductVariant.Product.imageURL}
+                                              alt={item.ProductVariant.Product.emri}
+                                              style={{
+                                                width: "60px",
+                                                height: "60px",
+                                                objectFit: "cover",
+                                                borderRadius: "4px",
+                                              }}
+                                            />
+                                            <MDBox>
+                                              <MDTypography variant="body2">
+                                                <strong>Product:</strong>{" "}
+                                                {item.ProductVariant.Product.emri}
+                                              </MDTypography>
+                                              <MDTypography variant="body2">
+                                                <strong>Shade:</strong> {item.ProductVariant.shade}
+                                              </MDTypography>
+                                              <MDTypography variant="body2">
+                                                <strong>Qty:</strong> {item.sasia}
+                                              </MDTypography>
+                                              <MDTypography variant="body2">
+                                                <strong>Price:</strong> $
+                                                {parseFloat(item.cmimi).toFixed(2)}
+                                              </MDTypography>
+                                            </MDBox>
+                                          </MDBox>
+                                        </Card>
+                                      </Grid>
+                                    ))
+                                  ) : (
+                                    <Grid item xs={12}>
+                                      <p>No items found for this order.</p>
+                                    </Grid>
+                                  )}
+                                </Grid>
+                              </MDBox>
+                              <Accordion>
+                                <AccordionSummary
+                                  expandIcon={<ExpandMoreIcon />}
+                                  aria-controls={`returns-content-${order.orderID}`}
+                                  id={`returns-header-${order.orderID}`}
+                                >
+                                  <MDTypography variant="h6">
+                                    Return Requests ({returnsByOrder[order.orderID]?.length || 0})
+                                  </MDTypography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                  {loadingReturns[order.orderID] ? (
+                                    <p>Loading returns...</p>
+                                  ) : returnsByOrder[order.orderID] &&
+                                    returnsByOrder[order.orderID].length > 0 ? (
+                                    returnsByOrder[order.orderID].map((ret) => (
+                                      <Card
+                                        key={ret.returnID}
+                                        variant="outlined"
+                                        style={{ marginBottom: "10px", padding: "10px" }}
+                                      >
+                                        <MDTypography>
+                                          <strong>Reason:</strong> {ret.arsyeja}
+                                        </MDTypography>
+                                        <MDTypography>
+                                          <strong>Status:</strong> {ret.status}
+                                        </MDTypography>
+                                        {/* Add update button if status is not confirmed */}
+                                        {ret.status !== "confirmed" && (
+                                          <MDButton
+                                            variant="contained"
+                                            color="success"
+                                            size="small"
+                                            onClick={() =>
+                                              updateReturnStatus(ret.returnID, ret.returnOrderID)
+                                            }
+                                            disabled={loading}
+                                            style={{ marginTop: "8px" }}
+                                          >
+                                            Confirm Return
+                                          </MDButton>
+                                        )}
+                                      </Card>
+                                    ))
+                                  ) : (
+                                    <p>No returns for this order.</p>
+                                  )}
+                                </AccordionDetails>
+                              </Accordion>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    ) : (
+                      <p>No orders found.</p>
+                    )}
+                  </MDBox>
+                </Grid>
               </MDBox>
             </Card>
           </Grid>

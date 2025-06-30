@@ -27,6 +27,32 @@ router.get("/:returnID", async (req, res) => {
     }
 });
 
+// Assuming models: Order, Return
+
+router.get("/orders/:orderID", async (req, res) => {
+  try {
+    const orderID = req.params.orderID;
+
+    const orderWithReturns = await Order.findByPk(orderID, {
+      include: [
+        {
+          model: Return,
+          required: false, // so it still returns even if no returns exist
+        },
+        // Include OrderItems if needed
+      ],
+    });
+
+    if (!orderWithReturns) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+
+    res.json(orderWithReturns);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve order with returns." });
+  }
+});
+
 // Create new return
 router.post("/", async (req, res) => {
     try {
@@ -45,7 +71,7 @@ router.post("/", async (req, res) => {
 // Update return by ID
 router.put("/:returnID", auth, checkRole(["admin"]), async (req, res) => {
     try {
-        const { arsyeja, status, returnOrderID } = req.body;
+        const { status, returnOrderID } = req.body;
 
         // Find the return record
         const ret = await Return.findByPk(req.params.returnID);
@@ -54,7 +80,7 @@ router.put("/:returnID", auth, checkRole(["admin"]), async (req, res) => {
         }
 
         // Update the return record
-        await ret.update({ arsyeja, status, returnOrderID });
+        await ret.update({ status, returnOrderID });
 
         // If status is 'confirmed', delete the associated order
         if (status === "confirmed") {

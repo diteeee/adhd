@@ -20,21 +20,18 @@ import MDTypography from "components/MDTypography";
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 function Coupons() {
   const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [payments, setPayments] = useState([]);
   const [dialogType, setDialogType] = useState("");
   const [couponData, setCouponData] = useState({
     couponID: "",
     kodi: "",
     type: "",
     shuma: "",
-    couponPaymentID: "",
   });
 
   const token = localStorage.getItem("token");
@@ -46,32 +43,34 @@ function Coupons() {
   };
 
   useEffect(() => {
+    fetchCoupons();
+
+    setColumns([
+      { Header: "Coupon ID", accessor: "couponID", align: "left" },
+      { Header: "Code", accessor: "kodi", align: "center" },
+      { Header: "Discount Type", accessor: "type", align: "center" },
+      { Header: "Amount", accessor: "shuma", align: "center" },
+      { Header: "Actions", accessor: "actions", align: "center" },
+    ]);
+  }, []);
+
+  const fetchCoupons = () => {
     axios
       .get("http://localhost:3001/coupons", axiosConfig)
       .then((response) => {
         const coupons = response.data;
-        const cols = [
-          { Header: "Coupon ID", accessor: "couponID", align: "left" },
-          { Header: "Code", accessor: "kodi", align: "center" },
-          { Header: "Discount Type", accessor: "type", align: "center" },
-          { Header: "Amount", accessor: "shuma", align: "center" },
-          { Header: "Payment", accessor: "payment", align: "center" },
-          { Header: "Actions", accessor: "actions", align: "center" },
-        ];
-        setColumns(cols);
-
         const formattedRows = coupons.map((coupon) => ({
           couponID: coupon.couponID,
           kodi: coupon.kodi,
           type: coupon.type,
-          shuma: coupon.shuma,
-          payment: `${coupon.Payment?.paymentID || "Unknown"}`,
+          // Add dollar sign in amount display
+          shuma: `$${coupon.shuma}`,
           actions: (
             <div>
               <Button color="primary" onClick={() => handleEdit(coupon)}>
                 Edit
               </Button>
-              <Button color="info" onClick={() => handleDelete(coupon.couponID)}>
+              <Button color="error" onClick={() => handleDelete(coupon.couponID)}>
                 Delete
               </Button>
             </div>
@@ -83,18 +82,7 @@ function Coupons() {
       .catch((error) => {
         console.error("Failed to fetch coupons:", error);
       });
-  }, []);
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/payments", axiosConfig)
-      .then((response) => {
-        setPayments(response.data);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch payments:", error);
-      });
-  }, []);
+  };
 
   const handleDelete = (couponID) => {
     axios
@@ -113,29 +101,24 @@ function Coupons() {
       couponID: coupon.couponID,
       kodi: coupon.kodi,
       type: coupon.type,
-      shuma: coupon.shuma,
-      couponPaymentID: coupon.couponPaymentID,
+      shuma: coupon.shuma, // Keep raw number here for editing
     });
     setDialogType("edit");
     setOpenDialog(true);
   };
 
   const handleAdd = () => {
-    setCouponData({ couponID: "", kodi: "", type: "", shuma: "", couponPaymentID: "" });
+    setCouponData({ couponID: "", kodi: "", type: "", shuma: "" });
     setDialogType("add");
     setOpenDialog(true);
   };
 
   const handleSave = () => {
-    const { couponID, kodi, type, shuma, couponPaymentID } = couponData;
+    const { couponID, kodi, type, shuma } = couponData;
 
     if (dialogType === "edit") {
       axios
-        .put(
-          `http://localhost:3001/coupons/${couponID}`,
-          { kodi, type, shuma, couponPaymentID },
-          axiosConfig
-        )
+        .put(`http://localhost:3001/coupons/${couponID}`, { kodi, type, shuma }, axiosConfig)
         .then(() => {
           alert("Coupon updated successfully.");
           fetchCoupons();
@@ -146,7 +129,7 @@ function Coupons() {
         });
     } else if (dialogType === "add") {
       axios
-        .post("http://localhost:3001/coupons", { kodi, type, shuma, couponPaymentID }, axiosConfig)
+        .post("http://localhost:3001/coupons", { kodi, type, shuma }, axiosConfig)
         .then(() => {
           alert("Coupon created successfully.");
           fetchCoupons();
@@ -156,37 +139,6 @@ function Coupons() {
           console.error("Failed to create coupon:", error);
         });
     }
-  };
-
-  const fetchCoupons = () => {
-    axios
-      .get("http://localhost:3001/coupons", axiosConfig)
-      .then((response) => {
-        const coupons = response.data;
-        const formattedRows = coupons.map((coupon) => ({
-          couponID: coupon.couponID,
-          kodi: coupon.kodi,
-          type: coupon.type,
-          shuma: coupon.shuma,
-          createdAt: new Date(coupon.createdAt).toLocaleDateString(),
-          payment: `${coupon.Payment?.paymentID || "Unknown"}`,
-          actions: (
-            <div>
-              <Button color="info" onClick={() => handleEdit(coupon)}>
-                Edit
-              </Button>
-              <Button color="error" onClick={() => handleDelete(coupon.couponID)}>
-                Delete
-              </Button>
-            </div>
-          ),
-        }));
-
-        setRows(formattedRows);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch coupons:", error);
-      });
   };
 
   return (
@@ -203,7 +155,7 @@ function Coupons() {
                 px={2}
                 variant="gradient"
                 bgColor="info"
-                bcouponRadius="lg"
+                borderRadius="lg"
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
@@ -224,14 +176,13 @@ function Coupons() {
                   isSorted={false}
                   entriesPerPage={false}
                   showTotalEntries={false}
-                  noEndBcoupon
+                  noEndBorder
                 />
               </MDBox>
             </Card>
           </Grid>
         </Grid>
       </MDBox>
-      <Footer />
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Coupon" : "Add Coupon"}</DialogTitle>
@@ -256,29 +207,12 @@ function Coupons() {
             fullWidth
             label="Amount"
             variant="outlined"
+            type="number" // <-- restrict input to numbers only
+            inputProps={{ min: 0 }} // optional: minimum value 0
             value={couponData.shuma}
             onChange={(e) => setCouponData({ ...couponData, shuma: e.target.value })}
             margin="normal"
           />
-          <TextField
-            fullWidth
-            select
-            label="Select Payment"
-            variant="outlined"
-            value={couponData.couponPaymentID}
-            onChange={(e) => setCouponData({ ...couponData, couponPaymentID: e.target.value })}
-            margin="normal"
-            SelectProps={{
-              native: true,
-            }}
-          >
-            <option value=""></option>
-            {payments.map((payment) => (
-              <option key={payment.paymentID} value={payment.paymentID}>
-                {payment.paymentID}
-              </option>
-            ))}
-          </TextField>
         </DialogContent>
 
         <DialogActions>

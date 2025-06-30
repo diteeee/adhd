@@ -34,6 +34,72 @@ router.post('/', async (req, res) => {
     }
 });
 
+//get all
+router.get("/", async (req, res) => {
+  try {
+    const reviews = await Review.find();
+
+    if (!reviews.length) {
+      return res.status(404).json({ message: "No reviews found." });
+    }
+
+    // Filter out reviews missing userID or productID to be safe
+    const filteredReviews = reviews.filter(r => r.reviewUserID && r.reviewProductID);
+
+    const userIDs = [...new Set(filteredReviews.map(r => r.reviewUserID.toString()))];
+    const productIDs = [...new Set(filteredReviews.map(r => r.reviewProductID.toString()))];
+
+    const users = await User.findAll({
+      where: { userID: userIDs },
+      attributes: ['userID', 'emri', 'mbiemri'],
+    });
+
+    const products = await Product.findAll({
+      where: { productID: productIDs },
+      attributes: ['productID', 'emri'],
+    });
+
+    const userMap = new Map(users.map(u => [u.userID.toString(), u]));
+    const productMap = new Map(products.map(p => [p.productID.toString(), p]));
+
+    const enrichedReviews = reviews.map(review => {
+      const userId = review.reviewUserID ? review.reviewUserID.toString() : null;
+      const productId = review.reviewProductID ? review.reviewProductID.toString() : null;
+
+      return {
+        ...review.toObject(),
+        user: userId ? userMap.get(userId) || null : null,
+        product: productId ? productMap.get(productId) || null : null,
+      };
+    });
+
+    const ratingDistribution = [0, 0, 0, 0, 0];
+    enrichedReviews.forEach(({ rating }) => {
+      const r = Number(rating);
+      if (r >= 1 && r <= 5) ratingDistribution[r - 1]++;
+    });
+
+    const validRatings = enrichedReviews
+      .map(r => Number(r.rating))
+      .filter(r => !isNaN(r) && r >= 1 && r <= 5);
+
+    const totalReviews = validRatings.length;
+    const averageRating = totalReviews
+      ? validRatings.reduce((sum, r) => sum + r, 0) / totalReviews
+      : 0;
+
+    res.status(200).json({
+      reviews: enrichedReviews,
+      totalReviews,
+      averageRating: averageRating.toFixed(2),
+      ratingDistribution,
+    });
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ error: "Failed to fetch reviews" });
+  }
+});
+
 //get all reviews for a specific product
 router.get('/product/:productID', async (req, res) => {
     const { productID } = req.params;

@@ -1,29 +1,23 @@
-import React, { useEffect } from "react";
-// @mui material components
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+// @mui components
 import Grid from "@mui/material/Grid";
-
-// Material Dashboard 2 React components
+import Typography from "@mui/material/Typography";
+// Material Dashboard components
 import MDBox from "components/MDBox";
-
-// Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
-import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
-
-// Data
-import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-
-// Dashboard components
-import Projects from "layouts/dashboard/components/Projects";
-import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import { jwtDecode } from "jwt-decode";
 
 function Dashboard() {
-  const { sales, tasks } = reportsLineChartData;
+  const [products, setProducts] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+  const [ratingDistribution, setRatingDistribution] = useState([0, 0, 0, 0, 0]);
   const queryParams = new URLSearchParams(window.location.search);
   const token = queryParams.get("token") || localStorage.getItem("token");
 
@@ -55,124 +49,136 @@ function Dashboard() {
     }
   }, [token]);
 
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("http://localhost:3001/products");
+      setProducts(response.data);
+      setTotalProducts(response.data.length);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const response = await axios.get("http://localhost:3001/reviews");
+      const {
+        reviews: reviewList,
+        totalReviews,
+        averageRating,
+        ratingDistribution,
+      } = response.data;
+
+      setReviews(reviewList || []);
+      setTotalReviews(totalReviews || 0);
+      setAverageRating(parseFloat(averageRating).toFixed(2)); // convert string to float & format
+      setRatingDistribution(ratingDistribution || [0, 0, 0, 0, 0]);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchReviews();
+  }, []);
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="dark"
-                icon="weekend"
-                title="Bookings"
-                count={281}
-                percentage={{
-                  color: "success",
-                  amount: "+55%",
-                  label: "than last week",
-                }}
-              />
-            </MDBox>
+          <Grid item xs={12} md={6} lg={4}>
+            <ComplexStatisticsCard
+              color="primary"
+              icon="store"
+              title="Total Products"
+              count={totalProducts}
+              percentage={{
+                color: "success",
+                amount: "+5%",
+                label: "since last month",
+              }}
+            />
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                icon="leaderboard"
-                title="Today's Users"
-                count="2,300"
-                percentage={{
-                  color: "success",
-                  amount: "+3%",
-                  label: "than last month",
-                }}
-              />
-            </MDBox>
+          <Grid item xs={12} md={6} lg={4}>
+            <ComplexStatisticsCard
+              color="dark"
+              icon="star_rate"
+              title="Total Reviews"
+              count={totalReviews}
+              percentage={{
+                color: "success",
+                amount: "+10%",
+                label: "since last week",
+              }}
+            />
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="success"
-                icon="store"
-                title="Revenue"
-                count="34k"
-                percentage={{
-                  color: "success",
-                  amount: "+1%",
-                  label: "than yesterday",
-                }}
-              />
-            </MDBox>
-          </Grid>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="primary"
-                icon="person_add"
-                title="Followers"
-                count="+91"
-                percentage={{
-                  color: "success",
-                  amount: "",
-                  label: "Just updated",
-                }}
-              />
-            </MDBox>
+          <Grid item xs={12} md={6} lg={4}>
+            <ComplexStatisticsCard
+              color="success"
+              icon="grade"
+              title="Average Rating"
+              count={averageRating}
+              percentage={{
+                color: "warning",
+                amount: "+2%",
+                label: "since last week",
+              }}
+            />
           </Grid>
         </Grid>
+
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsBarChart
-                  color="info"
-                  title="website views"
-                  description="Last Campaign Performance"
-                  date="campaign sent 2 days ago"
-                  chart={reportsBarChartData}
-                />
-              </MDBox>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="success"
-                  title="daily sales"
-                  description={
-                    <>
-                      (<strong>+15%</strong>) increase in today sales.
-                    </>
-                  }
-                  date="updated 4 min ago"
-                  chart={sales}
-                />
-              </MDBox>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="dark"
-                  title="completed tasks"
-                  description="Last Campaign Performance"
-                  date="just updated"
-                  chart={tasks}
-                />
-              </MDBox>
+            <Grid item xs={12} md={6}>
+              <ReportsLineChart
+                color="info"
+                title="Reviews by Rating"
+                description="Rating distribution for reviews"
+                date="updated 5 mins ago"
+                chart={{
+                  labels: [1, 2, 3, 4, 5],
+                  datasets: {
+                    label: "Ratings",
+                    data: ratingDistribution,
+                    borderColor: "#3f51b5",
+                    backgroundColor: "rgba(63, 81, 181, 0.2)",
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                  },
+                }}
+              />
             </Grid>
           </Grid>
         </MDBox>
-        <MDBox>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={8}>
-              <Projects />
+
+        <MDBox mt={4.5}>
+          <Typography variant="h6">Latest Reviews</Typography>
+          <MDBox mt={2}>
+            <Grid container spacing={3}>
+              {reviews.slice(0, 5).map((review) => (
+                <Grid item xs={12} md={6} lg={4} key={review._id}>
+                  <Typography variant="body1">
+                    <strong>Product:</strong> {review.product?.emri || "N/A"}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Rating:</strong> {review.rating} / 5
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Comment:</strong> {review.comment || review.koment || "No comment"}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    User: {review.user ? `${review.user.emri} ${review.user.mbiemri}` : "Anonymous"}
+                  </Typography>
+                </Grid>
+              ))}
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <OrdersOverview />
-            </Grid>
-          </Grid>
+          </MDBox>
         </MDBox>
       </MDBox>
-      <Footer />
     </DashboardLayout>
   );
 }

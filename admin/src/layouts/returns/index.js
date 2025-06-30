@@ -7,6 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 // @mui material components
@@ -20,7 +22,6 @@ import MDTypography from "components/MDTypography";
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 function Returns() {
@@ -44,15 +45,20 @@ function Returns() {
     },
   };
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
+
   useEffect(() => {
     fetchReturns();
     fetchOrders();
 
     setColumns([
-      { Header: "Return ID", accessor: "returnID", align: "left" },
       { Header: "Reason", accessor: "arsyeja", align: "center" },
       { Header: "Status", accessor: "status", align: "center" },
-      { Header: "Order", accessor: "order", align: "center" },
+      { Header: "User", accessor: "order", align: "center" },
       { Header: "Actions", accessor: "actions", align: "center" },
     ]);
   }, []);
@@ -65,12 +71,21 @@ function Returns() {
           returnID: ret.returnID,
           arsyeja: ret.arsyeja,
           status: ret.status,
-          order: `#${ret.Order?.orderID || "Unknown"}`,
+          order:
+            `${ret.Order?.User?.emri || "Unknown"} ${ret.Order?.User?.mbiemri || ""}`.trim() ||
+            "Unknown",
           actions: (
             <div>
-              <Button color="info" onClick={() => handleEdit(ret)}>
-                Edit
-              </Button>
+              {/* Confirm button only shows if status is not confirmed */}
+              {ret.status !== "confirmed" && (
+                <Button
+                  variant="contained"
+                  onClick={() => handleConfirm(ret.returnID, ret.returnOrderID)}
+                  style={{ marginRight: 8, color: "white" }}
+                >
+                  Confirm
+                </Button>
+              )}
               <Button color="error" onClick={() => handleDelete(ret.returnID)}>
                 Delete
               </Button>
@@ -91,59 +106,40 @@ function Returns() {
       .catch((err) => console.error("Failed to fetch orders:", err));
   };
 
-  const handleAdd = () => {
-    setReturnData({ returnID: "", arsyeja: "", status: "", returnOrderID: "" });
-    setDialogType("add");
-    setOpenDialog(true);
-  };
-
-  const handleEdit = (ret) => {
-    setReturnData({
-      returnID: ret.returnID,
-      arsyeja: ret.arsyeja,
-      status: ret.status,
-      returnOrderID: ret.returnOrderID || ret.Order?.orderID || "",
-    });
-    setDialogType("edit");
-    setOpenDialog(true);
-  };
-
   const handleDelete = (returnID) => {
     axios
       .delete(`http://localhost:3001/returns/${returnID}`, axiosConfig)
       .then(() => {
-        alert("Return deleted successfully.");
+        setSnackbarMessage(`Return request deleted successfully.`);
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         fetchReturns();
+        fetchOrders(); // Refresh orders as well
       })
       .catch((err) => console.error("Failed to delete return:", err));
   };
 
-  const handleSave = () => {
-    const { returnID, arsyeja, status, returnOrderID } = returnData;
-
-    if (dialogType === "edit") {
-      axios
-        .put(
-          `http://localhost:3001/returns/${returnID}`,
-          { arsyeja, status, returnOrderID },
-          axiosConfig
-        )
-        .then(() => {
-          alert("Return updated.");
-          fetchReturns();
-          setOpenDialog(false);
-        })
-        .catch((err) => console.error("Failed to update return:", err));
-    } else {
-      axios
-        .post("http://localhost:3001/returns", { arsyeja, status, returnOrderID }, axiosConfig)
-        .then(() => {
-          alert("Return added.");
-          fetchReturns();
-          setOpenDialog(false);
-        })
-        .catch((err) => console.error("Failed to add return:", err));
-    }
+  // New function to confirm return status
+  const handleConfirm = (returnID, returnOrderID) => {
+    axios
+      .put(
+        `http://localhost:3001/returns/${returnID}`,
+        { status: "confirmed", returnOrderID },
+        axiosConfig
+      )
+      .then(() => {
+        setSnackbarMessage(`Return status updated to confirmed.`);
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
+        fetchReturns();
+        fetchOrders(); // Refresh orders because order gets deleted on confirmation
+      })
+      .catch((err) => {
+        console.error("Failed to confirm return:", err);
+        setSnackbarMessage("Failed to confirm return.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+      });
   };
 
   return (
@@ -166,14 +162,6 @@ function Returns() {
                 <MDTypography variant="h6" color="white">
                   Returns
                 </MDTypography>
-                <Button
-                  variant="contained"
-                  color="info"
-                  onClick={handleAdd}
-                  style={{ marginTop: 20 }}
-                >
-                  Add Return
-                </Button>
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
@@ -188,58 +176,16 @@ function Returns() {
           </Grid>
         </Grid>
       </MDBox>
-      <Footer />
-
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>{dialogType === "edit" ? "Edit Return" : "Add Return"}</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Reason"
-            variant="outlined"
-            value={returnData.arsyeja}
-            onChange={(e) => setReturnData({ ...returnData, arsyeja: e.target.value })}
-            margin="normal"
-          ></TextField>
-
-          <TextField
-            fullWidth
-            label="Status"
-            variant="outlined"
-            value={returnData.status}
-            onChange={(e) => setReturnData({ ...returnData, status: e.target.value })}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            select
-            label="Select Order"
-            variant="outlined"
-            value={returnData.returnOrderID}
-            onChange={(e) => setReturnData({ ...returnData, returnOrderID: e.target.value })}
-            margin="normal"
-            SelectProps={{
-              native: true,
-            }}
-          >
-            <option value=""></option>
-            {orders.map((order) => (
-              <option key={order.orderID} value={order.orderID}>
-                #{order.orderID}
-              </option>
-            ))}
-          </TextField>
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="info">
-            Cancel
-          </Button>
-          <Button onClick={handleSave} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

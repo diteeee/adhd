@@ -219,7 +219,6 @@ function Orders() {
         })
         .catch((error) => {
           console.error("Failed to update order:", error);
-          console.error("Save failed:", err);
           setSnackbarMessage("Failed to update order.");
           setSnackbarSeverity("error");
         });

@@ -1,17 +1,22 @@
 const express = require("express");
 const router = express.Router();
-const { Return, Order } = require("../models");
+const { Return, Order, User } = require("../models");
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/permission'); 
 
 // Get all return
 router.get("/", async (req, res) => {
-    try {
-        const ret = await Return.findAll({ include: Order });
-        res.json(ret);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve return." });
-    }
+  try {
+    const ret = await Return.findAll({
+      include: {
+        model: Order,
+        include: User, // Include User inside Order
+      },
+    });
+    res.json(ret);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve return." });
+  }
 });
 
 // Get return by ID

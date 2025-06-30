@@ -10,6 +10,8 @@ import {
   Divider,
   Button,
   Box,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 // Import your dashboard layout components
@@ -26,6 +28,12 @@ const OrderDetails = () => {
   const [loadingUpdate, setLoadingUpdate] = useState(false);
   const token = localStorage.getItem("token");
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
+
   useEffect(() => {
     axios
       .get(`http://localhost:3001/orders/${orderID}`)
@@ -35,12 +43,16 @@ const OrderDetails = () => {
 
   const handleProceedToPayment = async () => {
     if (!order || !order.Payments || order.Payments.length === 0) {
-      alert("Payment ID is missing or order is not loaded.");
+      setSnackbarMessage("Payment ID is missing or order is not loaded.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     const paymentMethod = order.paymentMethod?.toLowerCase();
     if (paymentMethod === "cash") {
-      alert("Cash payment does not require Stripe payment.");
+      setSnackbarMessage("Cash payment does not require Stripe payment.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     const paymentID = order.Payments[0].paymentID;
@@ -52,7 +64,9 @@ const OrderDetails = () => {
       window.location.href = response.data.url;
     } catch (error) {
       console.error("Failed to initiate payment:", error);
-      alert("Failed to proceed with payment.");
+      setSnackbarMessage("Failed to proceed with payment.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -171,7 +185,9 @@ const OrderDetails = () => {
       }));
       setEditingStatus(false);
     } catch (error) {
-      alert("Failed to update payment status");
+      setSnackbarMessage("Failed to update payment status.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       console.error(error);
     } finally {
       setLoadingUpdate(false);
@@ -529,6 +545,16 @@ const OrderDetails = () => {
           )}
         </Grid>
       </MDBox>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 };

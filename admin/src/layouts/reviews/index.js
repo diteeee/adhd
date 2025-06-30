@@ -9,15 +9,12 @@ import {
   DialogTitle,
 } from "@mui/material";
 
-// @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-// Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
@@ -26,13 +23,10 @@ import DataTable from "examples/Tables/DataTable";
 function Reviews() {
   const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
-  const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
-  const [selectedUser, setSelectedUser] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [reviewData, setReviewData] = useState({
-    reviewUserID: "",
-    reviewProductID: "",
     rating: "",
     koment: "",
   });
@@ -52,49 +46,43 @@ function Reviews() {
     }
   }, [token]);
 
+  // Fetch all products on mount
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/users", axiosConfig)
-      .then((res) => setUsers(res.data))
-      .catch((err) => console.error("Failed to fetch users:", err));
-
     axios
       .get("http://localhost:3001/products", axiosConfig)
       .then((res) => setProducts(res.data))
       .catch((err) => console.error("Failed to fetch products:", err));
 
     setColumns([
-      { Header: "Review ID", accessor: "reviewID" },
-      { Header: "User Name", accessor: "userName" },
-      { Header: "Product Name", accessor: "productName" },
-      { Header: "Rating", accessor: "rating" },
       { Header: "Comment", accessor: "koment" },
+      { Header: "User Name", accessor: "userName" },
+      { Header: "Rating", accessor: "rating" },
       { Header: "Actions", accessor: "actions" },
     ]);
   }, []);
 
+  // Fetch reviews when selectedProduct changes
   useEffect(() => {
-    if (selectedUser) {
+    if (selectedProduct) {
       fetchReviews();
     } else {
       setRows([]);
     }
-  }, [selectedUser]);
+  }, [selectedProduct]);
 
   const fetchReviews = () => {
     setRows([]);
     axios
-      .get(`http://localhost:3001/reviews/user/${selectedUser}`, axiosConfig)
+      .get(`http://localhost:3001/reviews/product/${selectedProduct}`, axiosConfig)
       .then((res) => {
         const reviews = res.data;
         const formatted = reviews.map((review) => ({
           reviewID: review.reviewID,
           userName: review.userName,
-          productName: review.productName,
-          rating: review.rating,
+          rating: `${review.rating}/5`,
           koment: review.koment,
           actions: (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center" }}>
               <Button
                 color="error"
                 onClick={() => handleDelete(review.reviewID)}
@@ -108,7 +96,10 @@ function Reviews() {
         }));
         setRows(formatted);
       })
-      .catch((err) => console.error("Failed to fetch reviews:", err));
+      .catch((err) => {
+        console.error("Failed to fetch reviews:", err);
+        setRows([]);
+      });
   };
 
   const handleDelete = (reviewID) => {
@@ -123,8 +114,6 @@ function Reviews() {
 
   const handleAdd = () => {
     setReviewData({
-      reviewUserID: selectedUser,
-      reviewProductID: "",
       rating: "",
       koment: "",
     });
@@ -132,13 +121,14 @@ function Reviews() {
   };
 
   const handleSave = () => {
-    const { reviewProductID, rating, koment } = reviewData;
+    // Assuming the userID is part of your auth token or available via context
+    // If not, you might need to pass it or fetch it separately.
+    // For now, I assume backend gets userID from token, so you don't send it here
 
     const payload = {
-      reviewUserID: selectedUser,
-      reviewProductID,
-      rating,
-      koment,
+      reviewProductID: selectedProduct,
+      rating: reviewData.rating,
+      koment: reviewData.koment,
     };
 
     axios
@@ -175,8 +165,8 @@ function Reviews() {
                   fullWidth
                   select
                   variant="outlined"
-                  value={selectedUser}
-                  onChange={(e) => setSelectedUser(e.target.value)}
+                  value={selectedProduct}
+                  onChange={(e) => setSelectedProduct(e.target.value)}
                   style={{ marginTop: 20 }}
                   SelectProps={{ native: true }}
                   sx={{
@@ -185,10 +175,10 @@ function Reviews() {
                     },
                   }}
                 >
-                  <option value="">Select User</option>
-                  {users.map((user) => (
-                    <option key={user.userID} value={user.userID}>
-                      {user.emri} {user.mbiemri}
+                  <option value="">Select Product</option>
+                  {products.map((product) => (
+                    <option key={product.productID} value={product.productID}>
+                      {product.emri}
                     </option>
                   ))}
                 </TextField>
@@ -197,7 +187,7 @@ function Reviews() {
                   color="info"
                   onClick={handleAdd}
                   style={{ marginTop: 20 }}
-                  disabled={!selectedUser}
+                  disabled={!selectedProduct}
                 >
                   Add Review
                 </Button>
@@ -234,29 +224,12 @@ function Reviews() {
             onChange={(e) => setReviewData({ ...reviewData, koment: e.target.value })}
             margin="normal"
           />
-          <TextField
-            fullWidth
-            select
-            label="Select Product"
-            variant="outlined"
-            value={reviewData.reviewProductID}
-            onChange={(e) => setReviewData({ ...reviewData, reviewProductID: e.target.value })}
-            margin="normal"
-            SelectProps={{ native: true }}
-          >
-            <option value=""></option>
-            {products.map((product) => (
-              <option key={product.productID} value={product.productID}>
-                {product.emri}
-              </option>
-            ))}
-          </TextField>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} color="info">
             Cancel
           </Button>
-          <Button onClick={handleSave} color="primary">
+          <Button onClick={handleSave} color="primary" disabled={!reviewData.rating}>
             Save
           </Button>
         </DialogActions>

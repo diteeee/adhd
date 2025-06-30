@@ -111,8 +111,6 @@ router.get('/user/:userID', auth, checkRole(["admin"]), async (req, res) => {
 //delete
 router.delete('/:reviewID', auth, async (req, res) => {
   const { reviewID } = req.params;
-  console.log('Review ID:', reviewID);
-  console.log('User from req:', req.user); // Log the user details from the auth middleware
 
   try {
     const review = await Review.findById(reviewID);
@@ -120,8 +118,8 @@ router.delete('/:reviewID', auth, async (req, res) => {
       return res.status(404).json({ error: 'Review not found' });
     }
 
-    // Check if the signed-in user is the owner of the review
-    if (review.reviewUserID !== req.user.userID) {
+    // Allow if user owns the review or is admin
+    if (review.reviewUserID !== req.user.userID && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'You are not authorized to delete this review.' });
     }
 
@@ -132,6 +130,5 @@ router.delete('/:reviewID', auth, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete review.' });
   }
 });
-
 
 module.exports = router;

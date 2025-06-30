@@ -335,8 +335,8 @@ function Users() {
             }}
           >
             <option value=""></option>
-            <option value="User">User</option>
-            <option value="Admin">Admin</option>
+            <option value="user">user</option>
+            <option value="admin">admin</option>
           </TextField>
         </DialogContent>
         <DialogActions>

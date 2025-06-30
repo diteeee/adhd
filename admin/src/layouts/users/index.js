@@ -54,6 +54,34 @@ function Users() {
     },
   };
 
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("token", token);
+      console.log("Token saved to localStorage:", token);
+
+      try {
+        const decodedToken = jwtDecode(token);
+        console.log("Decoded Token:", decodedToken);
+
+        const userRoleFromToken = decodedToken.role || "guest";
+        console.log("User Role from Token:", userRoleFromToken);
+
+        localStorage.setItem("role", userRoleFromToken);
+
+        if (userRoleFromToken !== "admin") {
+          console.warn("Unauthorized access. Redirecting to presentation page.");
+          window.location.href = "http://localhost:3000/presentation";
+        }
+      } catch (error) {
+        console.error("Failed to decode token:", error);
+      }
+    } else {
+      localStorage.removeItem("token");
+      console.warn("Unauthorized access. Redirecting to presentation page.");
+      window.location.href = "http://localhost:3000/presentation";
+    }
+  }, [token]);
+
   // Helper to show snackbar
   const showSnackbar = (message, severity = "info") => {
     setSnackbar({ open: true, message, severity });

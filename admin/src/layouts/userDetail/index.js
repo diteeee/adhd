@@ -16,6 +16,7 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CardActionArea from "@mui/material/CardActionArea";
 
 import {
   Dialog,
@@ -439,14 +440,21 @@ function UserDetail() {
                     flexWrap="wrap"
                     gap={2}
                   >
+                    <MDButton variant="outlined" color="info" onClick={() => navigate("/users")}>
+                      Back to Users
+                    </MDButton>
                     <MDButton variant="contained" color="primary" onClick={handleEditOpen}>
                       Edit
                     </MDButton>
                     <MDButton variant="outlined" color="error" onClick={handleDelete}>
                       Delete
                     </MDButton>
-                    <MDButton variant="outlined" color="info" onClick={() => navigate("/users")}>
-                      Back to Users
+                    <MDButton
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => navigate(`/cart/${userID}`)}
+                    >
+                      View Cart
                     </MDButton>
                   </Grid>
                 </Grid>
@@ -588,70 +596,74 @@ function UserDetail() {
                         {orders.map((order) => (
                           <Grid item xs={12} key={order.orderID}>
                             <Card variant="outlined">
-                              <MDBox p={3}>
-                                {/* Order Details */}
-                                <MDTypography variant="h6">
-                                  <strong>Order ID:</strong> {order.orderID}
-                                </MDTypography>
-                                <MDTypography variant="body2" mb={2}>
-                                  <strong>Date:</strong>{" "}
-                                  {new Date(order.createdAt).toLocaleDateString()}
-                                </MDTypography>
-                                <MDTypography variant="body1" mb={2}>
-                                  <strong>Status:</strong> {order.status}
-                                </MDTypography>
-                                <MDTypography variant="body1" mb={2}>
-                                  <strong>Total:</strong> ${parseFloat(order.totalPrice).toFixed(2)}
-                                </MDTypography>
+                              <CardActionArea onClick={() => navigate(`/orders/${order.orderID}`)}>
+                                <MDBox p={3}>
+                                  <MDTypography variant="h6">
+                                    <strong>Order ID:</strong> {order.orderID}
+                                  </MDTypography>
+                                  <MDTypography variant="body2" mb={2}>
+                                    <strong>Date:</strong>{" "}
+                                    {new Date(order.createdAt).toLocaleDateString()}
+                                  </MDTypography>
+                                  <MDTypography variant="body1" mb={2}>
+                                    <strong>Status:</strong> {order.status}
+                                  </MDTypography>
+                                  <MDTypography variant="body1" mb={2}>
+                                    <strong>Total:</strong> $
+                                    {parseFloat(order.totalPrice).toFixed(2)}
+                                  </MDTypography>
 
-                                {/* Order Items */}
-                                <MDTypography variant="h6" mb={2}>
-                                  Order Items
-                                </MDTypography>
-                                <Grid container spacing={2}>
-                                  {Array.isArray(order.OrderItems) &&
-                                  order.OrderItems.length > 0 ? (
-                                    order.OrderItems.map((item) => (
-                                      <Grid item xs={12} sm={6} md={4} key={item.orderItemID}>
-                                        <Card>
-                                          <MDBox display="flex" alignItems="center" gap={2} p={2}>
-                                            <img
-                                              src={item.ProductVariant.Product.imageURL}
-                                              alt={item.ProductVariant.Product.emri}
-                                              style={{
-                                                width: "60px",
-                                                height: "60px",
-                                                objectFit: "cover",
-                                                borderRadius: "4px",
-                                              }}
-                                            />
-                                            <MDBox>
-                                              <MDTypography variant="body2">
-                                                <strong>Product:</strong>{" "}
-                                                {item.ProductVariant.Product.emri}
-                                              </MDTypography>
-                                              <MDTypography variant="body2">
-                                                <strong>Shade:</strong> {item.ProductVariant.shade}
-                                              </MDTypography>
-                                              <MDTypography variant="body2">
-                                                <strong>Qty:</strong> {item.sasia}
-                                              </MDTypography>
-                                              <MDTypography variant="body2">
-                                                <strong>Price:</strong> $
-                                                {parseFloat(item.cmimi).toFixed(2)}
-                                              </MDTypography>
+                                  {/* Order Items */}
+                                  <MDTypography variant="h6" mb={2}>
+                                    Order Items
+                                  </MDTypography>
+                                  <Grid container spacing={2}>
+                                    {Array.isArray(order.OrderItems) &&
+                                    order.OrderItems.length > 0 ? (
+                                      order.OrderItems.map((item) => (
+                                        <Grid item xs={12} sm={6} md={4} key={item.orderItemID}>
+                                          <Card>
+                                            <MDBox display="flex" alignItems="center" gap={2} p={2}>
+                                              <img
+                                                src={item.ProductVariant.Product.imageURL}
+                                                alt={item.ProductVariant.Product.emri}
+                                                style={{
+                                                  width: "60px",
+                                                  height: "60px",
+                                                  objectFit: "cover",
+                                                  borderRadius: "4px",
+                                                }}
+                                              />
+                                              <MDBox>
+                                                <MDTypography variant="body2">
+                                                  <strong>Product:</strong>{" "}
+                                                  {item.ProductVariant.Product.emri}
+                                                </MDTypography>
+                                                <MDTypography variant="body2">
+                                                  <strong>Shade:</strong>{" "}
+                                                  {item.ProductVariant.shade}
+                                                </MDTypography>
+                                                <MDTypography variant="body2">
+                                                  <strong>Qty:</strong> {item.sasia}
+                                                </MDTypography>
+                                                <MDTypography variant="body2">
+                                                  <strong>Price:</strong> $
+                                                  {parseFloat(item.cmimi).toFixed(2)}
+                                                </MDTypography>
+                                              </MDBox>
                                             </MDBox>
-                                          </MDBox>
-                                        </Card>
+                                          </Card>
+                                        </Grid>
+                                      ))
+                                    ) : (
+                                      <Grid item xs={12}>
+                                        <p>No items found for this order.</p>
                                       </Grid>
-                                    ))
-                                  ) : (
-                                    <Grid item xs={12}>
-                                      <p>No items found for this order.</p>
-                                    </Grid>
-                                  )}
-                                </Grid>
-                              </MDBox>
+                                    )}
+                                  </Grid>
+                                </MDBox>
+                              </CardActionArea>
+
                               <Accordion>
                                 <AccordionSummary
                                   expandIcon={<ExpandMoreIcon />}
@@ -679,7 +691,6 @@ function UserDetail() {
                                         <MDTypography>
                                           <strong>Status:</strong> {ret.status}
                                         </MDTypography>
-                                        {/* Add update button if status is not confirmed */}
                                         {ret.status !== "confirmed" && (
                                           <MDButton
                                             variant="contained"
@@ -697,7 +708,7 @@ function UserDetail() {
                                       </Card>
                                     ))
                                   ) : (
-                                    <p>No returns for this order.</p>
+                                    <p>No return requests for this order.</p>
                                   )}
                                 </AccordionDetails>
                               </Accordion>

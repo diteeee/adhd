@@ -362,7 +362,15 @@ function UserDetail() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <MDBox pt={6} pb={3}>
+      <MDBox pb={3}>
+        <MDButton
+          variant="outlined"
+          color="info"
+          onClick={() => navigate("/users")}
+          style={{ marginBottom: "10px" }}
+        >
+          Back to Users
+        </MDButton>
         <Grid container spacing={4} justifyContent="center">
           {/* User Details Card */}
           <Grid item xs={12} md={6}>
@@ -440,9 +448,6 @@ function UserDetail() {
                     flexWrap="wrap"
                     gap={2}
                   >
-                    <MDButton variant="outlined" color="info" onClick={() => navigate("/users")}>
-                      Back to Users
-                    </MDButton>
                     <MDButton variant="contained" color="primary" onClick={handleEditOpen}>
                       Edit
                     </MDButton>
@@ -455,6 +460,13 @@ function UserDetail() {
                       onClick={() => navigate(`/cart/${userID}`)}
                     >
                       View Cart
+                    </MDButton>
+                    <MDButton
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => navigate(`/wishlist/${userID}`)}
+                    >
+                      View Wishlist
                     </MDButton>
                   </Grid>
                 </Grid>

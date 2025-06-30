@@ -1,6 +1,6 @@
 const express = require('express');
 const Wishlist = require('../models/Wishlists');
-const { User, Product } = require('../models');
+const { User, Product, ProductVariant } = require('../models');
 const router = express.Router();
 
 //create
@@ -30,38 +30,35 @@ router.post("/", async (req, res) => {
     }
 });
 
-
 //get wishlist by userID
 router.get('/:userID', async (req, res) => {
-    try {
-        const wishlist = await Wishlist.find({ userID: req.params.userID });
+  try {
+    const wishlist = await Wishlist.find({ userID: req.params.userID });
+    if (!wishlist) return res.status(200).json([]);
 
-        if (!wishlist || wishlist.length === 0) {
-            return res.status(404).json({ message: 'Wishlist not found' });
-        }
+    const user = await User.findByPk(req.params.userID);
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-        const user = await User.findByPk(req.params.userID);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+    const wishlistWithDetails = await Promise.all(
+        wishlist.map(async (item) => {
+            const product = await Product.findByPk(item.productID);
 
-        const productPromises = wishlist.map((item) =>
-            Product.findByPk(item.productID)
-        );
-        const products = await Promise.all(productPromises);
-
-        const wishlistWithDetails = wishlist.map((item, index) => ({
+            return {
             wishlistID: item._id,
             userID: item.userID,
             userEmri: user.emri,
-            productID: item.productID,
-            productEmri: products[index]?.emri,
-        }));
+            productID: product.productID,
+            productEmri: product.emri,
+            productImageURL: product.imageURL,  // <-- add this
+            };
+        })
+        );
 
-        res.status(200).json(wishlistWithDetails);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch wishlist' });
-    }
+    res.status(200).json(wishlistWithDetails);
+  } catch (error) {
+    console.error('Error fetching wishlist:', error);
+    res.status(500).json({ error: 'Failed to fetch wishlist' });
+  }
 });
 
 //delete

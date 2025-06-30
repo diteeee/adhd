@@ -191,7 +191,7 @@ export default function ProductDetails() {
         <Card sx={{ maxWidth: 1100, margin: "auto", minHeight: 500 }}>
           <MDBox p={3}>
             <MDButton variant="outlined" color="info" onClick={() => navigate("/products")}>
-              Back
+              Back to Products
             </MDButton>
 
             <Grid container spacing={4} alignItems="flex-start">

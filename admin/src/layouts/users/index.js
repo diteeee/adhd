@@ -69,6 +69,7 @@ function Users() {
       .then((res) => {
         const users = res.data;
         const cols = [
+          { Header: "ID", accessor: "userID", align: "left" },
           { Header: "First Name", accessor: "emri", align: "left" },
           { Header: "Last Name", accessor: "mbiemri", align: "left" },
           { Header: "Phone", accessor: "nrTel", align: "left" },
@@ -79,6 +80,7 @@ function Users() {
         setColumns(cols);
 
         const formattedRows = users.map((user) => ({
+          userID: user.userID,
           emri: (
             <Button
               variant="text"

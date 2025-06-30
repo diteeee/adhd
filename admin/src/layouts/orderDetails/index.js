@@ -18,6 +18,7 @@ import {
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox"; // Material Dashboard Box for padding/margin
+import MDButton from "components/MDButton";
 import { jsPDF } from "jspdf";
 
 const OrderDetails = () => {
@@ -223,7 +224,7 @@ const OrderDetails = () => {
                 borderRadius="lg"
                 coloredShadow="info"
               >
-                <Typography variant="h6" color="white">
+                <Typography variant="h5" style={{ color: "white" }}>
                   Order Details for #{orderID}
                 </Typography>
               </MDBox>
@@ -355,14 +356,14 @@ const OrderDetails = () => {
                     </Grid>
                   );
                 })}
-                <Button
-                  variant="contained"
-                  color="primary"
-                  style={{ marginTop: "20px", marginLeft: "10px" }}
-                  onClick={() => window.history.back()}
+                <MDButton
+                  variant="outlined"
+                  color="info"
+                  onClick={() => navigate("/orders")}
+                  style={{ marginBottom: "10px" }}
                 >
                   Back to Orders
-                </Button>
+                </MDButton>
                 {order.paymentMethod?.toLowerCase() !== "cash" &&
                   order.Payments[0]?.status !== "completed" && (
                     <Button

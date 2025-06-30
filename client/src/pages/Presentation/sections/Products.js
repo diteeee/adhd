@@ -473,7 +473,10 @@ const Products = () => {
                           <Button
                             size="small"
                             color="error"
-                            onClick={() => handleDelete(product.productID)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleDelete(product.productID);
+                            }}
                           >
                             Delete
                           </Button>

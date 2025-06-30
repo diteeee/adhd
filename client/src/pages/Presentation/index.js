@@ -25,6 +25,31 @@ function Presentation() {
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
 
+  const handleProductClick = (productID) => {
+    navigate(`/product/${productID}`); // <-- Navigate to product details page
+  };
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+
+    try {
+      const response = await fetch("http://localhost:3001/coupons/newsletter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      alert(data.message);
+    } catch (error) {
+      console.error("Error subscribing:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
+
   return (
     <>
       {/* Hero Section */}
@@ -92,7 +117,15 @@ function Presentation() {
           </MKTypography>
           <Grid container spacing={4}>
             {products.map((product) => (
-              <Grid item xs={12} sm={6} md={4} key={product.productID}>
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                key={product.productID}
+                onClick={() => handleProductClick(product.productID)} // <-- Add onClick
+                style={{ cursor: "pointer" }} // <-- Optional: Add pointer cursor
+              >
                 <Card>
                   <CardMedia
                     component="img"
@@ -120,18 +153,19 @@ function Presentation() {
       </MKBox>
 
       {/* Newsletter Signup */}
-      <MKBox py={6} sx={{ backgroundColor: "#f8f9fa" }}>
+      <MKBox py={6}>
         <Container>
           <MKTypography variant="h4" mb={3} textAlign="center">
             Join Our Newsletter
           </MKTypography>
           <Grid container justifyContent="center">
             <Grid item xs={12} sm={8} md={6}>
-              <form>
+              <form onSubmit={handleSubscribe}>
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <input
                       type="email"
+                      name="email"
                       placeholder="Enter your email"
                       style={{
                         width: "100%",
@@ -139,10 +173,11 @@ function Presentation() {
                         borderRadius: "5px",
                         border: "1px solid #ccc",
                       }}
+                      required
                     />
                   </Grid>
                   <Grid item xs={12} textAlign="center">
-                    <Button variant="contained" color="primary">
+                    <Button variant="contained" color="primary" type="submit">
                       Subscribe
                     </Button>
                   </Grid>

@@ -31,6 +31,17 @@ const ProductDetails = () => {
   const { user } = useUser(); // Get the current user
   const token = localStorage.getItem("token");
 
+  const fetchReviews = async () => {
+    try {
+      const res = await axios.get(`http://localhost:3001/reviews/product/${productID}`);
+      setReviews(res.data);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -51,17 +62,6 @@ const ProductDetails = () => {
         console.error("Error fetching variants:", error);
       } finally {
         setLoadingVariants(false);
-      }
-    };
-
-    const fetchReviews = async () => {
-      try {
-        const res = await axios.get(`http://localhost:3001/reviews/product/${productID}`);
-        setReviews(res.data);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-      } finally {
-        setLoadingReviews(false);
       }
     };
 
@@ -118,6 +118,7 @@ const ProductDetails = () => {
       });
       setReviews((prevReviews) => [...prevReviews, res.data]);
       setNewReview({ rating: "", koment: "" });
+      fetchReviews(); // call the new fetchReviews function here
       alert("You left a review.");
     } catch (error) {
       console.error("Error submitting review:", error);

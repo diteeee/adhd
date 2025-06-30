@@ -52,6 +52,40 @@ router.post("/apply-coupon", auth, async (req, res) => {
     }
 });
 
+router.post("/newsletter", async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: "Email is required." });
+        }
+
+        // Simulate randomness with a 20% chance to get a coupon
+        const isWinner = Math.random() < 0.2;
+
+        if (isWinner) {
+            // Fetch a random coupon from the database
+            const coupons = await Coupon.findAll();
+            if (coupons.length === 0) {
+                return res.status(404).json({ error: "No coupons available." });
+            }
+
+            const randomCoupon = coupons[Math.floor(Math.random() * coupons.length)];
+
+            return res.json({
+                message: `You won a coupon: "${randomCoupon.kodi}"!`,
+                discount: randomCoupon.shuma,
+            });
+        } else {
+            return res.json({
+                message: "Thank you for joining our newsletter!",
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ error: "Failed to process your request." });
+    }
+});
+
 // Create new coupon
 router.post("/", auth, checkRole(["admin"]), async (req, res) => {
     try {

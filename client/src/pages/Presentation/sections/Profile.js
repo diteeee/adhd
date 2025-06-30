@@ -111,9 +111,45 @@ function ProfilePage() {
     }
   }, [user]);
 
+  // Add this state near your other useState calls
+  const [errors, setErrors] = useState({
+    emri: "",
+    mbiemri: "",
+    nrTel: "",
+    email: "",
+  });
+
+  // Validation function (same rules as your example)
+  const validateField = (name, value) => {
+    switch (name) {
+      case "emri":
+      case "mbiemri":
+        if (!value) return "This field is required.";
+        if (!/^[A-Z][a-zA-Z]*$/.test(value))
+          return "Must start with a capital letter and contain only letters.";
+        return "";
+      case "nrTel":
+        if (!value) return "Phone number is required.";
+        if (!/^\d{5,15}$/.test(value)) return "Phone number must be 5-15 digits.";
+        return "";
+      case "email":
+        if (!value) return "Email is required.";
+        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value))
+          return "Invalid email address.";
+        return "";
+      default:
+        return "";
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: validateField(name, value),
+    }));
   };
 
   const handleSave = async () => {
@@ -169,6 +205,19 @@ function ProfilePage() {
       );
       setAddress(addressResponse.data);
 
+      const isFormValid =
+        Object.values(errors).every((e) => e === "") &&
+        formData.emri &&
+        formData.mbiemri &&
+        formData.nrTel &&
+        formData.email;
+
+      if (!isFormValid) {
+        alert("Please fix the errors in the form before saving.");
+        setLoading(false);
+        return;
+      }
+
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating user data or address:", error);
@@ -219,6 +268,9 @@ function ProfilePage() {
                           name="emri"
                           value={formData.emri || ""}
                           onChange={handleChange}
+                          error={!!errors.emri}
+                          helperText={errors.emri}
+                          margin="normal"
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -228,6 +280,9 @@ function ProfilePage() {
                           name="mbiemri"
                           value={formData.mbiemri || ""}
                           onChange={handleChange}
+                          error={!!errors.mbiemri}
+                          helperText={errors.mbiemri}
+                          margin="normal"
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -237,6 +292,9 @@ function ProfilePage() {
                           name="nrTel"
                           value={formData.nrTel || ""}
                           onChange={handleChange}
+                          error={!!errors.nrTel}
+                          helperText={errors.nrTel}
+                          margin="normal"
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -246,6 +304,9 @@ function ProfilePage() {
                           name="email"
                           value={formData.email || ""}
                           onChange={handleChange}
+                          error={!!errors.email}
+                          helperText={errors.email}
+                          margin="normal"
                         />
                       </Grid>
                       <MKBox mt={4} height="300px">
@@ -269,21 +330,22 @@ function ProfilePage() {
                         </MapContainer>
                       </MKBox>
                     </Grid>
-                    <MKBox mt={3} display="flex" justifyContent="space-between">
-                      <MKButton
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSave}
-                        disabled={loading}
-                      >
-                        {loading ? <CircularProgress size={24} color="inherit" /> : "Save"}
-                      </MKButton>
+                    <MKBox mt={3} display="flex" justifyContent="right">
                       <MKButton
                         variant="outlined"
                         color="secondary"
                         onClick={() => setIsEditing(false)}
                       >
                         Cancel
+                      </MKButton>
+                      <MKButton
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSave}
+                        disabled={loading}
+                        style={{ marginLeft: "10px" }}
+                      >
+                        {loading ? <CircularProgress size={24} color="inherit" /> : "Save"}
                       </MKButton>
                     </MKBox>
                   </form>

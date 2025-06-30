@@ -1,4 +1,3 @@
-import AboutUs from "layouts/pages/landing-pages/about-us";
 import ContactUs from "layouts/pages/landing-pages/contact-us";
 import SignIn from "layouts/pages/authentication/sign-in";
 import SignUp from "layouts/pages/authentication/sign-in/sign-up";
@@ -20,13 +19,8 @@ const routes = [
     rowsPerColumn: 2,
     collapse: [
       {
-        name: "landing pages",
+        name: "reach out",
         collapse: [
-          {
-            name: "about us",
-            route: "/pages/landing-pages/about-us",
-            component: <AboutUs />,
-          },
           {
             name: "contact us",
             route: "/pages/landing-pages/contact-us",

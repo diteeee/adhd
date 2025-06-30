@@ -44,6 +44,23 @@ const MyOrders = () => {
       });
   }, [token]);
 
+  const fetchOrders = () => {
+    setLoading(true);
+    axios
+      .get("http://localhost:3001/orders/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setOrders(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Failed to load orders.");
+        setLoading(false);
+      });
+  };
+
   // Reusable function to generate PDF receipt for any order
   const generatePdfReceipt = (order) => {
     const doc = new jsPDF();
@@ -146,7 +163,7 @@ const MyOrders = () => {
     doc.setFontSize(10);
     doc.text("Thank you for shopping with us!", pageWidth / 2, yPos, { align: "center" });
 
-    doc.save(`YourOrder.pdf`);
+    doc.save(`YourReceipt.pdf`);
   };
 
   const handleOpenDialog = (order) => {
@@ -180,8 +197,9 @@ const MyOrders = () => {
       )
       .then(() => {
         setSuccessMessage("Return request submitted successfully.");
+        fetchOrders();
         setError("");
-        setTimeout(handleCloseDialog, 3000); // Auto-close after 3 seconds
+        setTimeout(handleCloseDialog, 1000); // Auto-close after 3 seconds
       })
       .catch((err) => {
         console.error(err);

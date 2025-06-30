@@ -7,9 +7,6 @@ import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import MuiLink from "@mui/material/Link";
-import FacebookIcon from "@mui/icons-material/Facebook";
-import GoogleIcon from "@mui/icons-material/Google";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKInput from "components/MKInput";
@@ -29,27 +26,85 @@ function SignUpBasic() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState("");
 
+  const [errors, setErrors] = useState({
+    emri: "",
+    mbiemri: "",
+    nrTel: "",
+    email: "",
+    password: "",
+  });
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case "emri":
+      case "mbiemri":
+        if (!value) return "This field is required.";
+        if (!/^[A-Z][a-zA-Z]*$/.test(value))
+          return "Must start with a capital letter and contain only letters.";
+        return "";
+      case "nrTel":
+        if (!value) return "Phone number is required.";
+        if (!/^\d{5,15}$/.test(value)) return "Phone number must be 5-15 digits.";
+        return "";
+      case "email":
+        if (!value) return "Email is required.";
+        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value))
+          return "Invalid email address.";
+        return "";
+      case "password":
+        if (!value) return "Password is required.";
+        if (value.length < 8) return "Password must be at least 8 characters long.";
+        return "";
+      default:
+        return "";
+    }
+  };
+
   const navigate = useNavigate();
 
+  // Validate field on change + update state
+  const handleChangeWithValidation = (setter, name) => (e) => {
+    const val = e.target.value;
+    setter(val);
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, val),
+    }));
+  };
+
+  const isFormValid =
+    Object.values(errors).every((e) => e === "") && emri && mbiemri && nrTel && email && password;
+
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
-  const handleTogglePasswordVisibility = () => setShowPassword(!showPassword);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
+    // Validate all fields before submit
+    const newErrors = {
+      emri: validateField("emri", emri),
+      mbiemri: validateField("mbiemri", mbiemri),
+      nrTel: validateField("nrTel", nrTel),
+      email: validateField("email", email),
+      password: validateField("password", password),
+    };
+    setErrors(newErrors);
 
+    if (Object.values(newErrors).some((msg) => msg !== "")) {
+      setError("Please fix the errors in the form before submitting.");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      // Adjust the endpoint if your backend uses a different route
       const response = await axios.post("http://localhost:3001/users", {
         emri,
         mbiemri,
         nrTel,
         email,
         password,
-        role: "user", // default role for signup
+        role: "user",
       });
-
       if (response.status === 201) {
         setSuccess("Account created successfully. Redirecting...");
         setTimeout(() => navigate("/pages/authentication/sign-in"), 3000);
@@ -95,25 +150,13 @@ function SignUpBasic() {
                 coloredShadow="secondary"
                 mx={2}
                 mt={-3}
-                p={2}
+                p={4}
                 mb={1}
                 textAlign="center"
               >
-                <MKTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+                <MKTypography variant="h4" fontWeight="medium" color="white" mt={1} mb={2}>
                   Sign up
                 </MKTypography>
-                <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
-                  <Grid item xs={2}>
-                    <MKTypography component={MuiLink} href="#" variant="body1" color="white">
-                      <FacebookIcon color="inherit" />
-                    </MKTypography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <MKTypography component={MuiLink} href="#" variant="body1" color="white">
-                      <GoogleIcon color="inherit" />
-                    </MKTypography>
-                  </Grid>
-                </Grid>
               </MKBox>
               <MKBox pt={4} pb={3} px={3}>
                 <MKBox component="form" role="form" onSubmit={handleSubmit}>
@@ -123,8 +166,10 @@ function SignUpBasic() {
                       label="First Name"
                       fullWidth
                       value={emri}
-                      onChange={(e) => setEmri(e.target.value)}
+                      onChange={handleChangeWithValidation(setEmri, "emri")}
                       required
+                      error={!!errors.emri}
+                      helperText={errors.emri}
                     />
                   </MKBox>
                   <MKBox mb={2}>
@@ -133,8 +178,10 @@ function SignUpBasic() {
                       label="Last Name"
                       fullWidth
                       value={mbiemri}
-                      onChange={(e) => setMbiemri(e.target.value)}
+                      onChange={handleChangeWithValidation(setMbiemri, "mbiemri")}
                       required
+                      error={!!errors.mbiemri}
+                      helperText={errors.mbiemri}
                     />
                   </MKBox>
                   <MKBox mb={2}>
@@ -143,8 +190,10 @@ function SignUpBasic() {
                       label="Phone Number"
                       fullWidth
                       value={nrTel}
-                      onChange={(e) => setNrTel(e.target.value)}
+                      onChange={handleChangeWithValidation(setNrTel, "nrTel")}
                       required
+                      error={!!errors.nrTel}
+                      helperText={errors.nrTel}
                     />
                   </MKBox>
                   <MKBox mb={2}>
@@ -153,8 +202,10 @@ function SignUpBasic() {
                       label="Email"
                       fullWidth
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={handleChangeWithValidation(setEmail, "email")}
                       required
+                      error={!!errors.email}
+                      helperText={errors.email}
                     />
                   </MKBox>
                   <MKBox mb={2}>
@@ -163,13 +214,14 @@ function SignUpBasic() {
                       label="Password"
                       fullWidth
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={handleChangeWithValidation(setPassword, "password")}
                       required
                       autoComplete="new-password"
+                      helperText={errors.password}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
-                            <IconButton onClick={handleTogglePasswordVisibility} edge="end">
+                            <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                               {showPassword ? <VisibilityOff /> : <Visibility />}
                             </IconButton>
                           </InputAdornment>
@@ -205,7 +257,7 @@ function SignUpBasic() {
                       variant="gradient"
                       color="secondary"
                       fullWidth
-                      disabled={isLoading}
+                      disabled={isLoading || !isFormValid} // disable if loading or invalid
                     >
                       {isLoading ? "Signing up..." : "Sign up"}
                     </MKButton>

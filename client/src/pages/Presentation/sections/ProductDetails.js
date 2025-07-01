@@ -14,6 +14,8 @@ import {
   Chip,
   Box,
   TextField,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useUser } from "context/UserContext"; // Import useUser from your context
@@ -30,6 +32,12 @@ const ProductDetails = () => {
   const [loadingReviews, setLoadingReviews] = useState(true);
   const { user } = useUser(); // Get the current user
   const token = localStorage.getItem("token");
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   const fetchReviews = async () => {
     try {
@@ -76,12 +84,16 @@ const ProductDetails = () => {
 
   const handleAddToCartClick = async () => {
     if (!user) {
-      alert("You need to be signed in to add items to the cart.");
+      setSnackbarMessage("You need to be signed in to add items to the cart.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
 
     if (!selectedShade) {
-      alert("Please select a shade to add to cart.");
+      setSnackbarMessage("Please select a shade to add to cart.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
 
@@ -91,21 +103,29 @@ const ProductDetails = () => {
         cartUserID: user.userID, // Replace with the actual user ID
         cartProductVariantID: selectedShade.productVariantID,
       });
-      alert("Product added to cart!");
+      setSnackbarMessage("Product added to cart!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("Failed to add product to cart.");
+      setSnackbarMessage("Failed to add product to cart.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
   const handleReviewSubmit = async () => {
     if (!user) {
-      alert("You need to be signed in to leave a review.");
+      setSnackbarMessage("You need to be signed in to leave a review.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
 
     if (!newReview.rating || !newReview.koment) {
-      alert("Please provide both a rating and a comment.");
+      setSnackbarMessage("Please provide both a rating and a comment.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
 
@@ -119,10 +139,14 @@ const ProductDetails = () => {
       setReviews((prevReviews) => [...prevReviews, res.data]);
       setNewReview({ rating: "", koment: "" });
       fetchReviews(); // call the new fetchReviews function here
-      alert("You left a review.");
+      setSnackbarMessage("You left a review.");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error submitting review:", error);
-      alert("Failed to submit review.");
+      setSnackbarMessage("Failed to submit review.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -132,7 +156,9 @@ const ProductDetails = () => {
     }
 
     if (!token) {
-      alert("You need to be signed in to delete a review.");
+      setSnackbarMessage("You need to be signed in to delete a review.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
 
@@ -143,10 +169,14 @@ const ProductDetails = () => {
         },
       });
       setReviews((prevReviews) => prevReviews.filter((review) => review.reviewID !== reviewID));
-      alert("Review deleted successfully.");
+      setSnackbarMessage("Review deleted successfully.");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error deleting review:", error);
-      alert("Failed to delete the review.");
+      setSnackbarMessage("Failed to delete the review.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -350,6 +380,35 @@ const ProductDetails = () => {
           </Button>
         </Box>
       </Card>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        sx={{
+          transform: "scale(1)",
+          animation: "popup 0.5s ease-in-out",
+        }}
+        PaperProps={{
+          sx: {
+            backgroundColor: "transparent", // make Snackbar background transparent
+            boxShadow: "none", // remove shadow if needed
+          },
+        }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
+          sx={{
+            backgroundColor: "#fbfbf0", // beige
+            color: "#5a4d00",
+            fontWeight: "bold",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)", // optional subtle shadow
+          }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

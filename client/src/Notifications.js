@@ -41,17 +41,21 @@ const Notifications = ({ userId }) => {
             transform: "scale(1)",
             animation: "popup 0.5s ease-in-out",
           }}
+          PaperProps={{
+            sx: {
+              backgroundColor: "transparent", // make Snackbar background transparent
+              boxShadow: "none", // remove shadow if needed
+            },
+          }}
         >
           <Alert
             onClose={() => handleClose(index)}
             severity="info"
             sx={{
-              width: "100%",
-              border: "2px solid #ff4081", // Bright pink border
-              borderRadius: "8px",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)", // Stronger shadow
-              backgroundColor: "#ffccde", // Vibrant pinkish background
-              color: "#000", // Dark text for readability
+              backgroundColor: "#fbfbf0", // beige
+              color: "#5a4d00",
+              fontWeight: "bold",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)", // optional subtle shadow
             }}
           >
             {notif.mesazhi ? notif.mesazhi : "No message"}

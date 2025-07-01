@@ -158,7 +158,6 @@ export default function ProductDetails() {
 
     request
       .then(() => {
-        alert(`Product ${isEdit ? "updated" : "added"} successfully.`);
         setSnackbarMessage(`Product ${isEdit ? "updated" : "added"} successfully.`);
         setSnackbarSeverity("success");
         setSnackbarOpen(true);

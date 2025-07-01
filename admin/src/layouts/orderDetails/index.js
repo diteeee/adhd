@@ -13,6 +13,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 // Import your dashboard layout components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -28,6 +29,7 @@ const OrderDetails = () => {
   const [newPaymentStatus, setNewPaymentStatus] = useState(order?.Payments[0]?.status || "");
   const [loadingUpdate, setLoadingUpdate] = useState(false);
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");

@@ -7,6 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 // @mui material components
@@ -41,6 +43,12 @@ function Coupons() {
       Authorization: `Bearer ${token}`,
     },
   };
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   useEffect(() => {
     if (token) {
@@ -116,11 +124,16 @@ function Coupons() {
     axios
       .delete(`http://localhost:3001/coupons/${couponID}`, axiosConfig)
       .then(() => {
-        alert("Coupon deleted successfully.");
+        setSnackbarMessage(`Coupon deleted successfully.`);
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         fetchCoupons();
       })
       .catch((error) => {
         console.error("Failed to delete coupon:", error);
+        setSnackbarMessage("Failed to delete coupon.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       });
   };
 
@@ -148,23 +161,33 @@ function Coupons() {
       axios
         .put(`http://localhost:3001/coupons/${couponID}`, { kodi, type, shuma }, axiosConfig)
         .then(() => {
-          alert("Coupon updated successfully.");
+          setSnackbarMessage("Coupon updated successfully.");
+          setSnackbarSeverity("success");
+          setSnackbarOpen(true);
           fetchCoupons();
           setOpenDialog(false);
         })
         .catch((error) => {
           console.error("Failed to update coupon:", error);
+          setSnackbarMessage("Failed to update coupon.");
+          setSnackbarSeverity("error");
+          setSnackbarOpen(true);
         });
     } else if (dialogType === "add") {
       axios
         .post("http://localhost:3001/coupons", { kodi, type, shuma }, axiosConfig)
         .then(() => {
-          alert("Coupon created successfully.");
+          setSnackbarMessage("Coupon created successfully.");
+          setSnackbarSeverity("success");
+          setSnackbarOpen(true);
           fetchCoupons();
           setOpenDialog(false);
         })
         .catch((error) => {
           console.error("Failed to create coupon:", error);
+          setSnackbarMessage("Failed to create coupon.");
+          setSnackbarSeverity("error");
+          setSnackbarOpen(true);
         });
     }
   };
@@ -252,6 +275,16 @@ function Coupons() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

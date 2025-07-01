@@ -11,6 +11,7 @@ import MDButton from "components/MDButton";
 import Card from "@mui/material/Card";
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
+import { Snackbar, Alert } from "@mui/material";
 
 function UserCart() {
   const { userID } = useParams();
@@ -22,6 +23,12 @@ function UserCart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingQuantities, setEditingQuantities] = useState({}); // Track quantity edits per cartID
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   useEffect(() => {
     if (token) {
@@ -94,7 +101,9 @@ function UserCart() {
       })
       .catch((err) => {
         console.error("Failed to update quantity:", err);
-        alert("Failed to update quantity");
+        setSnackbarMessage("Failed to update quantity.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       });
   };
 
@@ -108,7 +117,9 @@ function UserCart() {
         })
         .catch((err) => {
           console.error("Failed to delete cart item:", err);
-          alert("Failed to delete cart item");
+          setSnackbarMessage("Failed to delete cart item.");
+          setSnackbarSeverity("error");
+          setSnackbarOpen(true);
         });
     }
   };
@@ -197,6 +208,16 @@ function UserCart() {
           </MDButton>
         </MDBox>
       </MDBox>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

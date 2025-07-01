@@ -7,6 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import Grid from "@mui/material/Grid";
@@ -37,6 +39,12 @@ function Reviews() {
       Authorization: `Bearer ${token}`,
     },
   };
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   useEffect(() => {
     if (token) {
@@ -126,7 +134,9 @@ function Reviews() {
     axios
       .delete(`http://localhost:3001/reviews/${reviewID}`, axiosConfig)
       .then(() => {
-        alert("Review deleted successfully.");
+        setSnackbarMessage("Review deleted successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         fetchReviews();
       })
       .catch((err) => console.error("Delete failed:", err));
@@ -154,7 +164,9 @@ function Reviews() {
     axios
       .post("http://localhost:3001/reviews", payload, axiosConfig)
       .then(() => {
-        alert("Review added.");
+        setSnackbarMessage("Review added successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         fetchReviews();
         setOpenDialog(false);
       })
@@ -253,6 +265,16 @@ function Reviews() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

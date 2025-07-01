@@ -36,7 +36,7 @@ function Categories() {
     message: "",
     severity: "success",
   });
-  const token = queryParams.get("token") || localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (token) {

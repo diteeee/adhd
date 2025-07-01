@@ -8,7 +8,10 @@ import {
   Typography,
   TextField,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
+import Notifications from "Notifications";
 
 import { useNavigate } from "react-router-dom"; // For navigation
 import MKBox from "components/MKBox";
@@ -56,6 +59,12 @@ function ProfilePage() {
   const [addressLoading, setAddressLoading] = useState(false);
   const [mapPosition, setMapPosition] = useState(null); // latitude & longitude
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
+
   const reverseGeocode = async (latlng) => {
     try {
       const response = await axios.get("http://localhost:3001/addresss/reverse-geocode", {
@@ -102,6 +111,9 @@ function ProfilePage() {
         .catch((err) => {
           if (err.response?.status !== 404) {
             console.error("Failed to fetch address:", err);
+            setSnackbarMessage("Failed to fetch address.");
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true);
           }
           setAddress(null);
         })
@@ -179,7 +191,9 @@ function ProfilePage() {
         !addressPayload.zipCode.trim() ||
         !addressPayload.shteti.trim()
       ) {
-        alert("Please select a valid address on the map.");
+        setSnackbarMessage("Please select a valid address on the map.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
         setLoading(false);
         return;
       }
@@ -213,7 +227,9 @@ function ProfilePage() {
         formData.email;
 
       if (!isFormValid) {
-        alert("Please fix the errors in the form before saving.");
+        setSnackbarMessage("Please fix the errors in the form before saving.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
         setLoading(false);
         return;
       }
@@ -221,6 +237,9 @@ function ProfilePage() {
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating user data or address:", error);
+      setSnackbarMessage("Error updating user data or address.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -230,6 +249,7 @@ function ProfilePage() {
 
   return (
     <Container>
+      {user && <Notifications userId={user.userID} />}
       <MKBox mt={4}>
         <Grid container spacing={4} justifyContent="center">
           {/* Profile Header */}
@@ -392,6 +412,35 @@ function ProfilePage() {
           </Grid>
         </Grid>
       </MKBox>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        sx={{
+          transform: "scale(1)",
+          animation: "popup 0.5s ease-in-out",
+        }}
+        PaperProps={{
+          sx: {
+            backgroundColor: "transparent", // make Snackbar background transparent
+            boxShadow: "none", // remove shadow if needed
+          },
+        }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
+          sx={{
+            backgroundColor: "#fbfbf0", // beige
+            color: "#5a4d00",
+            fontWeight: "bold",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)", // optional subtle shadow
+          }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

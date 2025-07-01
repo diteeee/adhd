@@ -233,7 +233,9 @@ function UserDetail() {
 
   const handleSave = async () => {
     if (!validateForm()) {
-      alert("Please fix errors before saving.");
+      setSnackbarMessage("Please fix errors before saving.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
 
@@ -266,7 +268,9 @@ function UserDetail() {
         !addressPayload.zipCode.trim() ||
         !addressPayload.shteti.trim()
       ) {
-        alert("Please fill in all address fields.");
+        setSnackbarMessage("Please fill in all address fields.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
         setLoading(false);
         return;
       }
@@ -313,12 +317,16 @@ function UserDetail() {
       axios
         .delete(`http://localhost:3001/users/${userID}`, axiosConfig)
         .then(() => {
-          alert("User deleted.");
+          setSnackbarMessage("User deleted successfully.");
+          setSnackbarSeverity("success");
+          setSnackbarOpen(true);
           navigate("/users");
         })
         .catch((err) => {
           console.error("Delete failed:", err);
-          alert("Failed to delete user.");
+          setSnackbarMessage("Failed to delete user.");
+          setSnackbarSeverity("error");
+          setSnackbarOpen(true);
         });
     }
   };
@@ -766,6 +774,16 @@ function UserDetail() {
           </Grid>
         </Grid>
       </MDBox>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

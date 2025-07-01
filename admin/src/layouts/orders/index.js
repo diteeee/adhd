@@ -249,6 +249,7 @@ function Orders() {
           console.error("Failed to update order:", error);
           setSnackbarMessage("Failed to update order.");
           setSnackbarSeverity("error");
+          setSnackbarOpen(true);
         });
     } else if (dialogType === "add") {
       axios

@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
 });
 
 // routers
-const userRouter = require('./routes/Users');
+const userRouter = require('./routes/Users')(io);
 app.use("/users", userRouter);
 
 const addressRouter = require('./routes/Addresss');

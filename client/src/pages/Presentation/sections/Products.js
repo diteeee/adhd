@@ -18,6 +18,8 @@ import {
   TextField,
   DialogActions,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import MKBox from "components/MKBox";
 import IconButton from "@mui/material/IconButton";
@@ -54,16 +56,21 @@ const Products = () => {
   const [productForm, setProductForm] = useState(initialProductState);
 
   // New for shade/variant dialog
-  const [shadeDialogOpen, setShadeDialogOpen] = useState(false);
+  const [currentProductForShade, setCurrentProductForShade] = useState(null);
+  const [loadingVariants, setLoadingVariants] = useState(false);
   const [selectedProductVariants, setSelectedProductVariants] = useState([]);
   const [selectedShade, setSelectedShade] = useState("");
-  const [loadingVariants, setLoadingVariants] = useState(false);
-  const [currentProductForShade, setCurrentProductForShade] = useState(null);
   const [brands, setBrands] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState("");
   const [wishlistOpen, setWishlistOpen] = useState(false);
 
   const token = localStorage.getItem("token");
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   useEffect(() => {
     fetchCategories();
@@ -115,7 +122,9 @@ const Products = () => {
 
   const handleWishlistClick = async (productID) => {
     if (!user) {
-      alert("Please log in to add products to your wishlist.");
+      setSnackbarMessage("Please log in to add products to your wishlist.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
 
@@ -137,13 +146,17 @@ const Products = () => {
       }
     } catch (error) {
       console.error("Error updating wishlist:", error);
-      alert("Failed to update wishlist.");
+      setSnackbarMessage("Failed to update wishlist.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
   const handleAddToCartClick = async (product) => {
     if (!user) {
-      alert("Please log in to add products to your cart.");
+      setSnackbarMessage("Please log in to add products to your cart.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     setCurrentProductForShade(product);
@@ -154,10 +167,11 @@ const Products = () => {
       );
       setSelectedProductVariants(res.data);
       setSelectedShade("");
-      setShadeDialogOpen(true);
     } catch (err) {
       console.error("Error fetching product variants:", err);
-      alert("Failed to load product variants.");
+      setSnackbarMessage("Failed to load product variants.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     } finally {
       setLoadingVariants(false);
     }
@@ -165,7 +179,9 @@ const Products = () => {
 
   const handleConfirmShade = async () => {
     if (!selectedShade) {
-      alert("Please select a shade.");
+      setSnackbarMessage("Please select a shade.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     try {
@@ -174,20 +190,24 @@ const Products = () => {
         cartUserID: user.userID,
         cartProductVariantID: selectedShade,
       });
-      alert("Product added to cart!");
-      setShadeDialogOpen(false);
+      setSnackbarMessage("Product added to cart!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+      setCurrentProductForShade(null);
+      setSelectedProductVariants([]);
+      setSelectedShade("");
       triggerCartRefresh(); // <--- trigger cart update here!
       console.log(response);
     } catch (error) {
       console.error("Error adding variant to cart:", error);
-      alert("Failed to add product variant to cart.");
+      setSnackbarMessage("Failed to add product variant to cart.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
-  const handleShadeDialogClose = () => {
-    setShadeDialogOpen(false);
-    setSelectedProductVariants([]);
-    setSelectedShade("");
+  const handleShadeSelectChange = (e) => {
+    setSelectedShade(e.target.value);
   };
 
   const handleCategoryChange = (event) => {
@@ -222,9 +242,15 @@ const Products = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      setSnackbarMessage("Product deleted successfully.");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
       fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
+      setSnackbarMessage("Error deleting product.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -284,11 +310,15 @@ const Products = () => {
         const updatedVariants = [...productForm.variants];
         updatedVariants.splice(index, 1); // Remove locally
         setProductForm((prev) => ({ ...prev, variants: updatedVariants }));
-        alert("Variant deleted successfully!");
+        setSnackbarMessage("Variant deleted successfully!");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
       }
     } catch (error) {
       console.error("Error deleting variant:", error);
-      alert("Failed to delete variant.");
+      setSnackbarMessage("Failed to delete variant.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -315,15 +345,24 @@ const Products = () => {
         await axios.put(`http://localhost:3001/products/${editingProduct.productID}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setSnackbarMessage("Product updated successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
       } else {
         await axios.post(`http://localhost:3001/products`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setSnackbarMessage("Product created successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
       }
       handleClose();
       fetchProducts();
     } catch (err) {
       console.error("Error submitting product:", err);
+      setSnackbarMessage("Error submitting product.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -412,7 +451,11 @@ const Products = () => {
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.productID}>
                   <Card
                     sx={{ maxWidth: 345, position: "relative", cursor: "pointer" }}
-                    onClick={() => handleProductClick(product.productID)}
+                    onClick={() => {
+                      if (currentProductForShade?.productID !== product.productID) {
+                        handleProductClick(product.productID);
+                      }
+                    }}
                   >
                     {/* Heart Icon for Wishlist */}
                     <IconButton
@@ -483,17 +526,75 @@ const Products = () => {
                         </Stack>
                       )}
                       {user && (
-                        <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={(event) => {
-                              event.stopPropagation(); // Prevent the card click event
-                              handleAddToCartClick(product);
-                            }}
-                          >
-                            Add to Cart
-                          </Button>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="flex-end"
+                          alignItems="center"
+                          sx={{ mt: 2 }}
+                        >
+                          {/* If this product is the current one for shade selection, show the dropdown + confirm button */}
+                          {currentProductForShade?.productID === product.productID ? (
+                            loadingVariants ? (
+                              <CircularProgress size={24} />
+                            ) : selectedProductVariants.length === 0 ? (
+                              <Typography>No shades available.</Typography>
+                            ) : (
+                              <>
+                                <FormControl size="small" sx={{ minWidth: 120 }}>
+                                  <InputLabel id={`shade-select-label-${product.productID}`}>
+                                    Shade
+                                  </InputLabel>
+                                  <Select
+                                    labelId={`shade-select-label-${product.productID}`}
+                                    value={selectedShade}
+                                    label="Shade"
+                                    onChange={handleShadeSelectChange}
+                                    sx={{ height: 40, fontSize: "0.9rem" }}
+                                  >
+                                    {selectedProductVariants.map((variant) => (
+                                      <MenuItem
+                                        key={variant.productVariantID}
+                                        value={variant.productVariantID}
+                                      >
+                                        {variant.shade}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </FormControl>
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  onClick={handleConfirmShade}
+                                  disabled={!selectedShade}
+                                >
+                                  Add
+                                </Button>
+                                <Button
+                                  size="small"
+                                  color="error"
+                                  onClick={() => {
+                                    setCurrentProductForShade(null);
+                                    setSelectedProductVariants([]);
+                                    setSelectedShade("");
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            )
+                          ) : (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={(event) => {
+                                event.stopPropagation(); // Prevent card click event
+                                handleAddToCartClick(product);
+                              }}
+                            >
+                              Add to Cart
+                            </Button>
+                          )}
                         </Stack>
                       )}
                     </CardContent>
@@ -509,6 +610,35 @@ const Products = () => {
             )}
           </Grid>
         </Container>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          sx={{
+            transform: "scale(1)",
+            animation: "popup 0.5s ease-in-out",
+          }}
+          PaperProps={{
+            sx: {
+              backgroundColor: "transparent", // make Snackbar background transparent
+              boxShadow: "none", // remove shadow if needed
+            },
+          }}
+        >
+          <Alert
+            onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
+            sx={{
+              backgroundColor: "#fbfbf0", // beige
+              color: "#5a4d00",
+              fontWeight: "bold",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)", // optional subtle shadow
+            }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </MKBox>
 
       {/* Add/Edit Product Dialog */}
@@ -639,40 +769,6 @@ const Products = () => {
           </Button>
           <Button onClick={handleSubmit} variant="contained">
             {editingProduct ? "Update" : "Add"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={shadeDialogOpen} onClose={handleShadeDialogClose} maxWidth="xs" fullWidth>
-        <DialogTitle>Select a Shade</DialogTitle>
-        <DialogContent>
-          {loadingVariants ? (
-            <CircularProgress />
-          ) : selectedProductVariants.length === 0 ? (
-            <Typography>No shades available for this product.</Typography>
-          ) : (
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Shade</InputLabel>
-              <Select
-                value={selectedShade}
-                onChange={(e) => setSelectedShade(e.target.value)}
-                label="Shade"
-                sx={{ height: 45, fontSize: "1rem" }}
-              >
-                {selectedProductVariants.map((variant) => (
-                  <MenuItem key={variant.productVariantID} value={variant.productVariantID}>
-                    {variant.shade}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleShadeDialogClose} color="error">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmShade} variant="contained" disabled={!selectedShade}>
-            Add to Cart
           </Button>
         </DialogActions>
       </Dialog>

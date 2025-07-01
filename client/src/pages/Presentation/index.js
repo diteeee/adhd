@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
-import { Card, CardMedia, CardContent } from "@mui/material";
+import { Card, CardMedia, CardContent, Snackbar, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom"; // <-- Import this
 
 import MKBox from "components/MKBox";
@@ -17,6 +17,12 @@ import bgImage from "assets/images/bg-presentation.jpg";
 function Presentation() {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate(); // <-- Initialize navigate
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   useEffect(() => {
     fetch("http://localhost:3001/products")
@@ -43,10 +49,14 @@ function Presentation() {
       });
 
       const data = await response.json();
-      alert(data.message);
+      setSnackbarMessage(data.message);
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error subscribing:", error);
-      alert("Something went wrong. Please try again.");
+      setSnackbarMessage("Something went wrong. Please try again.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -186,6 +196,35 @@ function Presentation() {
             </Grid>
           </Grid>
         </Container>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          sx={{
+            transform: "scale(1)",
+            animation: "popup 0.5s ease-in-out",
+          }}
+          PaperProps={{
+            sx: {
+              backgroundColor: "transparent", // make Snackbar background transparent
+              boxShadow: "none", // remove shadow if needed
+            },
+          }}
+        >
+          <Alert
+            onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
+            sx={{
+              backgroundColor: "#fbfbf0", // beige
+              color: "#5a4d00",
+              fontWeight: "bold",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)", // optional subtle shadow
+            }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </MKBox>
 
       <MKBox pt={6} px={1} mt={6}>

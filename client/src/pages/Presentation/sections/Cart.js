@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Container, Box, Typography, IconButton, TextField, Button, Stack } from "@mui/material";
+import {
+  Container,
+  Box,
+  Typography,
+  IconButton,
+  TextField,
+  Button,
+  Stack,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 import MKBox from "components/MKBox";
 import { useUser } from "context/UserContext";
@@ -13,9 +23,17 @@ const CartPage = () => {
   const [brands, setBrands] = useState([]);
   const token = localStorage.getItem("token");
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
+
   const handleProceedToCheckout = () => {
     if (cartItems.length === 0) {
-      alert("Your cart is empty. Please add products before proceeding to checkout.");
+      setSnackbarMessage("Your cart is empty. Please add products before proceeding to checkout.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     navigate("/Payment", {
@@ -264,6 +282,35 @@ const CartPage = () => {
             </Box>
           </Box>
         </Container>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          sx={{
+            transform: "scale(1)",
+            animation: "popup 0.5s ease-in-out",
+          }}
+          PaperProps={{
+            sx: {
+              backgroundColor: "transparent", // make Snackbar background transparent
+              boxShadow: "none", // remove shadow if needed
+            },
+          }}
+        >
+          <Alert
+            onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
+            sx={{
+              backgroundColor: "#fbfbf0", // beige
+              color: "#5a4d00",
+              fontWeight: "bold",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)", // optional subtle shadow
+            }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </MKBox>
     </>
   );

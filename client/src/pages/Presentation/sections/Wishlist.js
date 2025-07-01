@@ -14,6 +14,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -34,6 +36,12 @@ const WishlistDrawer = ({ open, onClose }) => {
   const [selectedProductVariants, setSelectedProductVariants] = useState([]);
   const [selectedShade, setSelectedShade] = useState("");
   const { triggerCartRefresh } = useContext(CartContext);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   const fetchWishlist = async () => {
     if (!user) {
@@ -85,7 +93,9 @@ const WishlistDrawer = ({ open, onClose }) => {
 
   const handleWishlistClick = async (productID) => {
     if (!user) {
-      alert("Please log in to manage your wishlist.");
+      setSnackbarMessage("Please log in to manage your wishlist.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     try {
@@ -95,13 +105,17 @@ const WishlistDrawer = ({ open, onClose }) => {
       setWishlistItems((prev) => prev.filter((item) => item.productID !== productID));
     } catch (error) {
       console.error("Error updating wishlist:", error);
-      alert("Failed to update wishlist.");
+      setSnackbarMessage("Failed to update wishlist.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
   const handleAddToCartClick = async (product) => {
     if (!user) {
-      alert("Please log in to add products to your cart.");
+      setSnackbarMessage("Please log in to add products to your cart.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     setCurrentProductForShade(product);
@@ -114,7 +128,9 @@ const WishlistDrawer = ({ open, onClose }) => {
       setSelectedShade(""); // Reset selected shade on new product
     } catch (err) {
       console.error("Error fetching product variants:", err);
-      alert("Failed to load product variants.");
+      setSnackbarMessage("Failed to load product variants.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     } finally {
       setLoadingVariants(false);
     }
@@ -122,7 +138,9 @@ const WishlistDrawer = ({ open, onClose }) => {
 
   const handleConfirmShade = async () => {
     if (!selectedShade) {
-      alert("Please select a shade.");
+      setSnackbarMessage("Please select a shade.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
     try {
@@ -131,7 +149,9 @@ const WishlistDrawer = ({ open, onClose }) => {
         cartUserID: user.userID,
         cartProductVariantID: selectedShade,
       });
-      alert("Product added to cart!", response);
+      setSnackbarMessage("Product added to cart!", response);
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
       // Reset after adding to cart
       setCurrentProductForShade(null);
       setSelectedProductVariants([]);
@@ -139,7 +159,9 @@ const WishlistDrawer = ({ open, onClose }) => {
       triggerCartRefresh();
     } catch (error) {
       console.error("Error adding variant to cart:", error);
-      alert("Failed to add product variant to cart.");
+      setSnackbarMessage("Failed to add product variant to cart.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -303,6 +325,35 @@ const WishlistDrawer = ({ open, onClose }) => {
             ))}
           </Grid>
         )}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          sx={{
+            transform: "scale(1)",
+            animation: "popup 0.5s ease-in-out",
+          }}
+          PaperProps={{
+            sx: {
+              backgroundColor: "transparent", // make Snackbar background transparent
+              boxShadow: "none", // remove shadow if needed
+            },
+          }}
+        >
+          <Alert
+            onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
+            sx={{
+              backgroundColor: "#fbfbf0", // beige
+              color: "#5a4d00",
+              fontWeight: "bold",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)", // optional subtle shadow
+            }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Drawer>
     </>
   );

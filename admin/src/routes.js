@@ -39,6 +39,7 @@ Coded by www.creative-tim.com
 import Dashboard from "layouts/dashboard";
 import Users from "layouts/users";
 import Categories from "layouts/categories";
+import Brands from "layouts/brands";
 import Products from "layouts/products";
 import Orders from "layouts/orders";
 import Returns from "layouts/returns";
@@ -73,6 +74,14 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/categories",
     component: <Categories />,
+  },
+  {
+    type: "collapse",
+    name: "Brands",
+    key: "brands",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/brands",
+    component: <Brands />,
   },
   {
     type: "collapse",

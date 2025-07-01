@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import {
@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useUser } from "context/UserContext"; // Import useUser from your context
+import { CartContext } from "context/CartContext";
 
 const ProductDetails = () => {
   const { productID } = useParams();
@@ -36,6 +37,7 @@ const ProductDetails = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const { triggerCartRefresh } = useContext(CartContext);
 
   const handleSnackbarClose = () => setSnackbarOpen(false);
 
@@ -106,6 +108,7 @@ const ProductDetails = () => {
       setSnackbarMessage("Product added to cart!");
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
+      triggerCartRefresh();
     } catch (error) {
       console.error("Error adding to cart:", error);
       setSnackbarMessage("Failed to add product to cart.");

@@ -109,22 +109,22 @@ function Users() {
 
         const formattedRows = users.map((user) => ({
           userID: user.userID,
-          emri: (
-            <Button
-              variant="text"
-              color="info"
-              onClick={() => navigate(`/users/${user.userID}`)}
-              style={{ textTransform: "none", padding: 0, minWidth: 0 }}
-            >
-              {user.emri}
-            </Button>
-          ),
+          emri: user.emri,
           mbiemri: user.mbiemri,
           nrTel: user.nrTel,
           email: user.email,
           role: user.role,
           actions: (
             <div>
+              <Button
+                color="info"
+                variant="contained"
+                size="small"
+                onClick={() => navigate(`/users/${user.userID}`)}
+                style={{ marginRight: "8px" }}
+              >
+                See Details
+              </Button>
               <Button color="primary" onClick={() => handleEdit(user)}>
                 Edit
               </Button>
@@ -385,7 +385,7 @@ function Users() {
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}

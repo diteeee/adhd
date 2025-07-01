@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Container,
   Box,
@@ -15,6 +15,7 @@ import MKBox from "components/MKBox";
 import { useUser } from "context/UserContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { CartContext } from "context/CartContext";
 
 const CartPage = () => {
   const { user } = useUser();
@@ -22,6 +23,7 @@ const CartPage = () => {
   const navigate = useNavigate();
   const [brands, setBrands] = useState([]);
   const token = localStorage.getItem("token");
+  const { triggerCartRefresh } = useContext(CartContext);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -75,6 +77,7 @@ const CartPage = () => {
       await axios.delete(`http://localhost:3001/carts/${cartID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      triggerCartRefresh();
       fetchCart();
     } catch (error) {
       console.error("Error removing from cart:", error);

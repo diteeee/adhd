@@ -103,6 +103,7 @@ function Orders() {
         const orders = response.data;
         console.log("Orders fetched:", orders); // <-- Add this
         const cols = [
+          { Header: "Details", accessor: "details", align: "center" },
           { Header: "User", accessor: "user", align: "center" },
           { Header: "Order ID", accessor: "orderID", align: "left" },
           { Header: "Total Price", accessor: "totalPrice", align: "center" },
@@ -117,20 +118,22 @@ function Orders() {
           const paymentCompleted = order.Payments?.some((p) => p.status === "completed");
 
           return {
+            details: (
+              <Button
+                color="info"
+                variant="contained"
+                size="small"
+                onClick={() => navigate(`/orders/${order.orderID}`)}
+                style={{ marginRight: "8px" }}
+              >
+                See Details
+              </Button>
+            ),
             orderID: order.orderID,
             totalPrice: Number(order.totalPrice || 0).toFixed(2),
             discount: Number(order.discount || 0).toFixed(2),
             status: order.status,
-            user: (
-              <Button
-                color="info"
-                variant="text"
-                style={{ textTransform: "none", padding: 0, minWidth: 0 }}
-                onClick={() => navigate(`/orders/${order.orderID}`)}
-              >
-                {`${order.User?.emri || "Unknown"} ${order.User?.mbiemri || ""}`}
-              </Button>
-            ),
+            user: `${order.User?.emri || "Unknown"} ${order.User?.mbiemri || ""}`,
             actions: (
               <div>
                 {!paymentCompleted && (
@@ -445,7 +448,7 @@ function Orders() {
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
           {snackbarMessage}

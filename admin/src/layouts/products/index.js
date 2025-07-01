@@ -148,22 +148,22 @@ function Products() {
               style={{ width: "70px", height: "auto", borderRadius: "6px", objectFit: "cover" }}
             />
           ),
-          emri: (
-            <Button
-              variant="text"
-              color="info"
-              onClick={() => navigate(`/products/${p.productID}`)}
-              style={{ textTransform: "none", padding: 0, minWidth: 0 }}
-            >
-              {p.emri}
-            </Button>
-          ),
+          emri: p.emri,
           pershkrimi: p.pershkrimi,
           brandName: p.Brand?.name || "No Brand",
           cmimi: p.cmimi,
           categoryName: p.Category?.emri || "",
           actions: (
             <div style={{ display: "flex", gap: 10 }}>
+              <Button
+                color="info"
+                variant="contained"
+                size="small"
+                onClick={() => navigate(`/products/${p.productID}`)}
+                style={{ marginRight: "8px" }}
+              >
+                See Details
+              </Button>
               <Button color="primary" onClick={() => handleEdit(p)} size="small">
                 Edit
               </Button>
@@ -494,7 +494,7 @@ function Products() {
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
           {snackbarMessage}

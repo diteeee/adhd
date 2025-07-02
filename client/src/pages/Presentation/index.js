@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
-import { Card, CardMedia, CardContent, Snackbar, Alert } from "@mui/material";
+import { Card, CardMedia, CardContent, Snackbar, Alert, TextField, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom"; // <-- Import this
 
 import MKBox from "components/MKBox";
@@ -16,6 +16,7 @@ import bgImage from "assets/images/bg-presentation.jpg";
 
 function Presentation() {
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate(); // <-- Initialize navigate
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -58,6 +59,14 @@ function Presentation() {
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+
+    // Navigate to Products page with search term query param
+    navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
   };
 
   return (
@@ -103,6 +112,48 @@ function Presentation() {
               Unlock your beauty with our exclusive makeup collection. Indulge in luxury and
               elegance.
             </MKTypography>
+            <form onSubmit={handleSearchSubmit} style={{ textAlign: "center", margin: "20px 0" }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                justifyContent="center"
+                alignItems="center"
+                sx={{ maxWidth: 400, margin: "0 auto" }}
+              >
+                <TextField
+                  variant="outlined"
+                  size="medium"
+                  placeholder="Search for a product, brand, or category..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{ flexGrow: 1 }}
+                  InputProps={{
+                    sx: {
+                      borderRadius: "8px",
+                      backgroundColor: "#fff",
+                    },
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                  sx={{
+                    borderRadius: "8px",
+                    paddingX: 3,
+                    height: "40px",
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    boxShadow: "none",
+                    "&:hover": {
+                      boxShadow: "0 0 8px rgba(25, 118, 210, 0.5)",
+                    },
+                  }}
+                >
+                  Search
+                </Button>
+              </Stack>
+            </form>
             <Grid container spacing={2} justifyContent="center" mt={3}>
               <Grid item>
                 <Button

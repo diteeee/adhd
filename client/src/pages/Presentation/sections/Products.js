@@ -29,7 +29,7 @@ import { useUser } from "context/UserContext";
 import { CartContext } from "context/CartContext";
 import axios from "axios";
 import WishlistDrawer from "pages/Presentation/sections/Wishlist";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const initialProductState = {
   emri: "",
@@ -50,6 +50,14 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const { triggerCartRefresh } = useContext(CartContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const getSearchParam = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get("search") || "";
+  };
+
+  const [searchTerm, setSearchTerm] = useState(getSearchParam());
 
   const [open, setOpen] = useState(false); // Add/Edit product dialog
   const [editingProduct, setEditingProduct] = useState(null);
@@ -75,9 +83,17 @@ const Products = () => {
   useEffect(() => {
     fetchCategories();
     fetchBrands();
-    fetchProducts();
     fetchWishlist();
   }, []);
+
+  useEffect(() => {
+    // Fetch products whenever selectedCategory, selectedBrand, or searchTerm changes
+    fetchFilteredProducts(selectedCategory, selectedBrand, searchTerm);
+  }, [selectedCategory, selectedBrand, searchTerm]);
+
+  useEffect(() => {
+    setSearchTerm(getSearchParam());
+  }, [location.search]);
 
   const fetchCategories = () => {
     axios
@@ -221,15 +237,24 @@ const Products = () => {
     fetchFilteredProducts(selectedCategory, brandId);
   };
 
-  const fetchFilteredProducts = (category, brand) => {
+  const fetchFilteredProducts = (category, brand, search) => {
+    setLoading(true);
     const params = new URLSearchParams();
     if (category) params.append("category", category);
     if (brand) params.append("brand", brand);
+    if (search) params.append("search", search);
 
     axios
       .get(`http://localhost:3001/products?${params.toString()}`)
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.error("Error fetching filtered products:", err));
+      .then((res) => {
+        console.log("Fetched filtered products:", res.data);
+        setProducts(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching filtered products:", err);
+        setLoading(false);
+      });
   };
 
   const handleDelete = async (productID) => {
@@ -378,6 +403,40 @@ const Products = () => {
     <>
       <WishlistDrawer open={wishlistOpen} onClose={closeWishlist} />
       <MKBox sx={{ paddingTop: "100px" }}>
+        <MKBox mb={2} display="flex" justifyContent="center">
+          <Stack direction="row" spacing={1} sx={{ maxWidth: 600, width: "100%" }}>
+            <TextField
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search products..."
+              size="small"
+              fullWidth
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  fetchFilteredProducts(selectedCategory, selectedBrand, searchTerm);
+                }
+              }}
+              sx={{
+                // backgroundColor: "#fff",
+                borderRadius: 1,
+              }}
+            />
+            <Button
+              variant="contained"
+              size="medium"
+              onClick={() => fetchFilteredProducts(selectedCategory, selectedBrand, searchTerm)}
+              sx={{
+                height: 40,
+                fontWeight: "bold",
+                textTransform: "none",
+              }}
+            >
+              Search
+            </Button>
+          </Stack>
+        </MKBox>
+
         <Container>
           {user?.role === "admin" && (
             <Button variant="contained" onClick={handleAddProduct}>

@@ -8,21 +8,33 @@ const sequelize = require("../models").sequelize; // Ensure sequelize is importe
 
 // Get all products (include Category and Brand)
 router.get("/", async (req, res) => {
-  const { category, brand } = req.query; // Read query parameters
-  const filter = {};
+  const { category, brand, search } = req.query;
+
+  // Base filter
+  const where = {};
 
   if (category) {
-    filter.productCategoryID = category;
+    where.productCategoryID = category;
+  }
+  if (brand) {
+    where.brandID = brand;
   }
 
-  if (brand) {
-    filter.brandID = brand;
+  if (search) {
+    where[Op.or] = [
+      { emri: { [Op.like]: `%${search}%` } },           // product name
+      { '$Brand.name$': { [Op.like]: `%${search}%` } }, // brand name
+      { '$Category.emri$': { [Op.like]: `%${search}%` } }, // category name
+    ];
   }
 
   try {
     const products = await Product.findAll({
-      where: filter,
-      include: [Category, Brand],
+      where,
+      include: [
+        { model: Category, attributes: ["categoryID", "emri"] },
+        { model: Brand, attributes: ["brandID", "name"] },
+      ],
     });
     res.json(products);
   } catch (error) {
@@ -30,6 +42,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve products." });
   }
 });
+
 
 // Get products by category ID (include Category and Brand)
 router.get("/category/:categoryID", async (req, res) => {

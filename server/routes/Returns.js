@@ -1,121 +1,136 @@
-const express = require("express");
-const router = express.Router();
-const { Return, Order, User } = require("../models");
-const auth = require('../middleware/auth');
-const checkRole = require('../middleware/permission'); 
+module.exports = (io) => {
+  const express = require("express");
+  const router = express.Router();
+  const { Return, Order, User } = require("../models");
+  const auth = require('../middleware/auth');
+  const checkRole = require('../middleware/permission'); 
+  const Notification = require("../models/Notifications");
 
-// Get all return
-router.get("/", async (req, res) => {
-  try {
-    const ret = await Return.findAll({
-      include: {
-        model: Order,
-        include: User, // Include User inside Order
-      },
-    });
-    res.json(ret);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve return." });
-  }
-});
-
-// Get return by ID
-router.get("/:returnID", async (req, res) => {
+  // Get all return
+  router.get("/", async (req, res) => {
     try {
-        const ret = await Return.findByPk(req.params.returnID, { include: Order });
-        if (!ret) {
-            return res.status(404).json({ error: "Return not found." });
-        }
-        res.json(ret);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to retrieve return." });
-    }
-});
-
-// Assuming models: Order, Return
-
-router.get("/orders/:orderID", async (req, res) => {
-  try {
-    const orderID = req.params.orderID;
-
-    const orderWithReturns = await Order.findByPk(orderID, {
-      include: [
-        {
-          model: Return,
-          required: false, // so it still returns even if no returns exist
+      const ret = await Return.findAll({
+        include: {
+          model: Order,
+          include: User, // Include User inside Order
         },
-        // Include OrderItems if needed
-      ],
-    });
-
-    if (!orderWithReturns) {
-      return res.status(404).json({ error: "Order not found." });
-    }
-
-    res.json(orderWithReturns);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve order with returns." });
-  }
-});
-
-// Create new return
-router.post("/", async (req, res) => {
-    try {
-        const { arsyeja, status, returnOrderID } = req.body;
-        const order = await Order.findByPk(returnOrderID);
-        if (!order) {
-            return res.status(404).json({ error: "Order not found." });
-        }
-        const newReturn = await Return.create({ arsyeja, status, returnOrderID });
-        res.status(201).json(newReturn);
+      });
+      res.json(ret);
     } catch (error) {
-        res.status(500).json({ error: "Failed to create return." });
+      res.status(500).json({ error: "Failed to retrieve return." });
     }
-});
+  });
 
-// Update return by ID
-router.put("/:returnID", auth, checkRole(["admin"]), async (req, res) => {
+  // Get return by ID
+  router.get("/:returnID", async (req, res) => {
+      try {
+          const ret = await Return.findByPk(req.params.returnID, { include: Order });
+          if (!ret) {
+              return res.status(404).json({ error: "Return not found." });
+          }
+          res.json(ret);
+      } catch (error) {
+          res.status(500).json({ error: "Failed to retrieve return." });
+      }
+  });
+
+  // Assuming models: Order, Return
+
+  router.get("/orders/:orderID", async (req, res) => {
     try {
-        const { status, returnOrderID } = req.body;
+      const orderID = req.params.orderID;
 
-        // Find the return record
-        const ret = await Return.findByPk(req.params.returnID);
-        if (!ret) {
-            return res.status(404).json({ error: "Return not found." });
-        }
+      const orderWithReturns = await Order.findByPk(orderID, {
+        include: [
+          {
+            model: Return,
+            required: false, // so it still returns even if no returns exist
+          },
+          // Include OrderItems if needed
+        ],
+      });
 
-        // Update the return record
-        await ret.update({ status, returnOrderID });
+      if (!orderWithReturns) {
+        return res.status(404).json({ error: "Order not found." });
+      }
 
-        // If status is 'confirmed', delete the associated order
-        if (status === "confirmed") {
-            const order = await Order.findByPk(returnOrderID);
-            if (!order) {
-                return res.status(404).json({ error: "Associated order not found." });
+      res.json(orderWithReturns);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to retrieve order with returns." });
+    }
+  });
+
+  // Create new return
+  router.post("/", async (req, res) => {
+      try {
+          const { arsyeja, status, returnOrderID } = req.body;
+          const order = await Order.findByPk(returnOrderID);
+          if (!order) {
+              return res.status(404).json({ error: "Order not found." });
+          }
+          const newReturn = await Return.create({ arsyeja, status, returnOrderID });
+          res.status(201).json(newReturn);
+      } catch (error) {
+          res.status(500).json({ error: "Failed to create return." });
+      }
+  });
+
+  // Update return by ID
+  router.put("/:returnID", auth, checkRole(["admin"]), async (req, res) => {
+        try {
+            const { status, returnOrderID } = req.body;
+
+            // Find the return record
+            const ret = await Return.findByPk(req.params.returnID);
+            if (!ret) {
+                return res.status(404).json({ error: "Return not found." });
             }
 
-            await order.destroy();
+            // Update the return record
+            await ret.update({ status, returnOrderID });
+            
+
+            // If status is 'confirmed', delete the associated order and notify user
+            if (status === "confirmed") {
+                const order = await Order.findByPk(returnOrderID, {
+                  include: User // include user to get userID for notification
+                });
+                if (!order) {
+                    return res.status(404).json({ error: "Associated order not found." });
+                }
+
+                // Create notification for the user
+                const mesazhi = "Your return request has been confirmed.";
+
+                const notification = await Notification.create({
+                  notificationUserID: order.User.userID, // user who placed the order
+                  mesazhi,
+                });
+                // Emit real-time notification to that user
+                io.to(order.User.userID).emit("newNotification", notification);
+
+                await order.destroy();
+            }
+
+            res.json({ message: "Return updated successfully.", return: ret });
+        } catch (error) {
+            console.error("Failed to update return:", error);
+            res.status(500).json({ error: "Failed to update return." });
         }
+  });
 
-        res.json({ message: "Return updated successfully.", return: ret });
-    } catch (error) {
-        console.error("Failed to update return:", error);
-        res.status(500).json({ error: "Failed to update return." });
-    }
-});
-
-// Delete return by ID
-router.delete("/:returnID", auth, checkRole(["admin"]), async (req, res) => {
-    try {
-        const ret = await Return.findByPk(req.params.returnID);
-        if (!ret) {
-            return res.status(404).json({ error: "Return not found." });
-        }
-        await ret.destroy();
-        res.json({ message: "Return deleted successfully." });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to delete return." });
-    }
-});
-
-module.exports = router;
+  // Delete return by ID
+  router.delete("/:returnID", auth, checkRole(["admin"]), async (req, res) => {
+      try {
+          const ret = await Return.findByPk(req.params.returnID);
+          if (!ret) {
+              return res.status(404).json({ error: "Return not found." });
+          }
+          await ret.destroy();
+          res.json({ message: "Return deleted successfully." });
+      } catch (error) {
+          res.status(500).json({ error: "Failed to delete return." });
+      }
+  });
+  return router;
+};

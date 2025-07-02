@@ -64,19 +64,19 @@ app.use("/orderItems", orderItemRouter);
 const paymentRouter = require('./routes/Payments');
 app.use("/payments", paymentRouter);
 
-const returnRouter = require('./routes/Returns');
+const returnRouter = require('./routes/Returns')(io);
 app.use("/returns", returnRouter);
 
-const couponRouter = require('./routes/Coupons');
+const couponRouter = require('./routes/Coupons')(io);
 app.use("/coupons", couponRouter);
 
-const reviewRouter = require('./routes/Reviews');
+const reviewRouter = require('./routes/Reviews')(io);
 app.use("/reviews", reviewRouter);
 
 const wishlistRouter = require('./routes/Wishlists');
 app.use("/wishlists", wishlistRouter);
 
-const cartRouter = require('./routes/Carts');
+const cartRouter = require('./routes/Carts')(io);
 app.use("/carts", cartRouter);
 
 const brandsRouter = require('./routes/Brands');

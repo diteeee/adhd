@@ -149,14 +149,12 @@ const WishlistDrawer = ({ open, onClose }) => {
         cartUserID: user.userID,
         cartProductVariantID: selectedShade,
       });
-      setSnackbarMessage("Product added to cart!", response);
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
       // Reset after adding to cart
       setCurrentProductForShade(null);
       setSelectedProductVariants([]);
       setSelectedShade("");
       triggerCartRefresh();
+      console.log("product added:", response);
     } catch (error) {
       console.error("Error adding variant to cart:", error);
       setSnackbarMessage("Failed to add product variant to cart.");

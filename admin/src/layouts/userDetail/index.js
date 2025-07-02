@@ -232,7 +232,21 @@ function UserDetail() {
   };
 
   const handleEditOpen = () => {
-    setUserData(user);
+    // Combine user and address fields into userData for editing
+    setUserData({
+      ...user,
+      rruga: address?.rruga || "",
+      qyteti: address?.qyteti || "",
+      zipCode: address?.zipCode || "",
+      shteti: address?.shteti || "",
+    });
+    // Set the map position from saved address if available
+    if (address && address.latitude && address.longitude) {
+      setMapPosition({ lat: address.latitude, lng: address.longitude });
+    } else {
+      setMapPosition(null);
+    }
+
     setErrors({});
     setOpenDialog(true);
   };
@@ -577,13 +591,13 @@ function UserDetail() {
                 SelectProps={{ native: true }}
               >
                 <option value=""></option>
-                <option value="User">User</option>
-                <option value="Admin">Admin</option>
+                <option value="user">user</option>
+                <option value="admin">admin</option>
               </TextField>
 
               <MDBox mt={4} height="300px">
                 <MapContainer
-                  center={mapPosition || [41.3275, 19.8189]}
+                  center={mapPosition || [42.6673, 21.1643]}
                   zoom={13}
                   style={{ height: "100%", width: "100%" }}
                 >

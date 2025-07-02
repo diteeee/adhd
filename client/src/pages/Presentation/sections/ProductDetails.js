@@ -16,6 +16,11 @@ import {
   TextField,
   Snackbar,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useUser } from "context/UserContext"; // Import useUser from your context
@@ -33,6 +38,9 @@ const ProductDetails = () => {
   const [loadingReviews, setLoadingReviews] = useState(true);
   const { user } = useUser(); // Get the current user
   const token = localStorage.getItem("token");
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -105,9 +113,6 @@ const ProductDetails = () => {
         cartUserID: user.userID, // Replace with the actual user ID
         cartProductVariantID: selectedShade.productVariantID,
       });
-      setSnackbarMessage("Product added to cart!");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
       triggerCartRefresh();
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -141,10 +146,7 @@ const ProductDetails = () => {
       });
       setReviews((prevReviews) => [...prevReviews, res.data]);
       setNewReview({ rating: "", koment: "" });
-      fetchReviews(); // call the new fetchReviews function here
-      setSnackbarMessage("You left a review.");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
+      fetchReviews();
     } catch (error) {
       console.error("Error submitting review:", error);
       setSnackbarMessage("Failed to submit review.");
@@ -153,34 +155,45 @@ const ProductDetails = () => {
     }
   };
 
-  const handleDeleteReview = async (reviewID) => {
-    if (!window.confirm("Are you sure you want to delete this review?")) {
-      return;
-    }
+  const handleDeleteReviewClick = (reviewID) => {
+    setReviewToDelete(reviewID);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!reviewToDelete) return;
 
     if (!token) {
       setSnackbarMessage("You need to be signed in to delete a review.");
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
+      setDeleteDialogOpen(false);
       return;
     }
 
     try {
-      await axios.delete(`http://localhost:3001/reviews/${reviewID}`, {
+      await axios.delete(`http://localhost:3001/reviews/${reviewToDelete}`, {
         headers: {
-          Authorization: `Bearer ${token}`, // add your token here
+          Authorization: `Bearer ${token}`,
         },
       });
-      setReviews((prevReviews) => prevReviews.filter((review) => review.reviewID !== reviewID));
-      setSnackbarMessage("Review deleted successfully.");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
+      setReviews((prevReviews) =>
+        prevReviews.filter((review) => review.reviewID !== reviewToDelete)
+      );
     } catch (error) {
       console.error("Error deleting review:", error);
       setSnackbarMessage("Failed to delete the review.");
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
+    } finally {
+      setDeleteDialogOpen(false);
+      setReviewToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setReviewToDelete(null);
   };
 
   if (loading) {
@@ -350,7 +363,7 @@ const ProductDetails = () => {
                     <Button
                       variant="text"
                       color="error"
-                      onClick={() => handleDeleteReview(review.reviewID)}
+                      onClick={() => handleDeleteReviewClick(review.reviewID)}
                     >
                       Delete
                     </Button>
@@ -358,6 +371,26 @@ const ProductDetails = () => {
               </Box>
             ))
           )}
+          <Dialog
+            open={deleteDialogOpen}
+            onClose={handleCancelDelete}
+            aria-labelledby="delete-confirmation-dialog"
+          >
+            <DialogTitle id="delete-confirmation-dialog">Confirm Delete</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Are you sure you want to delete this review? This action cannot be undone.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelDelete} color="primary" variant="">
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmDelete} color="secondary" variant="contained" autoFocus>
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
           <Divider sx={{ mt: 4, mb: 2 }} />
           <Typography variant="h6">Add a Review</Typography>
           <TextField

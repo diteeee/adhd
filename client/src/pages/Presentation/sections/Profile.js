@@ -11,7 +11,6 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import Notifications from "Notifications";
 
 import { useNavigate } from "react-router-dom"; // For navigation
 import MKBox from "components/MKBox";
@@ -122,6 +121,22 @@ function ProfilePage() {
         });
     }
   }, [user]);
+
+  useEffect(() => {
+    if (address) {
+      setFormData((prev) => ({
+        ...prev,
+        rruga: address.rruga || "",
+        qyteti: address.qyteti || address.town || address.village || "",
+        zipCode: address.zipCode || "",
+        shteti: address.shteti || address.country || "",
+      }));
+
+      if (address.latitude && address.longitude) {
+        setMapPosition({ lat: address.latitude, lng: address.longitude });
+      }
+    }
+  }, [address]);
 
   // Add this state near your other useState calls
   const [errors, setErrors] = useState({
@@ -249,7 +264,6 @@ function ProfilePage() {
 
   return (
     <Container>
-      {user && <Notifications userId={user.userID} />}
       <MKBox mt={4}>
         <Grid container spacing={4} justifyContent="center">
           {/* Profile Header */}
@@ -332,7 +346,7 @@ function ProfilePage() {
                       <MKBox mt={4} height="300px">
                         <Typography>Select your address on the map:</Typography>
                         <MapContainer
-                          center={mapPosition || [41.3275, 19.8189]} // default to Tirana, Albania
+                          center={mapPosition || [42.6673, 21.1643]} // default to Tirana, Albania
                           zoom={13}
                           style={{ height: "100%", width: "100%" }}
                         >

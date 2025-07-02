@@ -190,9 +190,6 @@ const Products = () => {
         cartUserID: user.userID,
         cartProductVariantID: selectedShade,
       });
-      setSnackbarMessage("Product added to cart!");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
       setCurrentProductForShade(null);
       setSelectedProductVariants([]);
       setSelectedShade("");

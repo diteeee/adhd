@@ -34,7 +34,7 @@ const Notifications = ({ userId }) => {
         <Snackbar
           key={index}
           open={true}
-          autoHideDuration={8000}
+          autoHideDuration={4000}
           onClose={() => handleClose(index)}
           anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
           sx={{
@@ -50,7 +50,7 @@ const Notifications = ({ userId }) => {
         >
           <Alert
             onClose={() => handleClose(index)}
-            severity="info"
+            // severity="success"
             sx={{
               backgroundColor: "#fbfbf0", // beige
               color: "#5a4d00",
@@ -67,7 +67,7 @@ const Notifications = ({ userId }) => {
 };
 
 Notifications.propTypes = {
-  userId: PropTypes.string.isRequired,
+  userId: PropTypes.number.isRequired, // Change from string to number
 };
 
 export default Notifications;

@@ -23,6 +23,7 @@ import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import DataTable from "examples/Tables/DataTable";
+import { jwtDecode } from "jwt-decode";
 
 function Coupons() {
   const [columns, setColumns] = useState([]);
@@ -35,6 +36,10 @@ function Coupons() {
     type: "",
     shuma: "",
   });
+
+  const [openSendDialog, setOpenSendDialog] = useState(false); // State for send coupon dialog
+  const [selectedUser, setSelectedUser] = useState(""); // State for selected user
+  const [users, setUsers] = useState([]); // State for user list
 
   const token = localStorage.getItem("token");
 
@@ -49,6 +54,13 @@ function Coupons() {
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
   const handleSnackbarClose = () => setSnackbarOpen(false);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/users", axiosConfig) // Replace with your endpoint for fetching users
+      .then((response) => setUsers(response.data))
+      .catch((error) => console.error("Failed to fetch users:", error));
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -192,6 +204,35 @@ function Coupons() {
     }
   };
 
+  const handleSendCoupon = async () => {
+    if (!selectedUser || !couponData.couponID) {
+      console.error("Missing selected user or coupon ID.");
+      setSnackbarMessage("Please select both a user and a coupon.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3001/coupons/send-coupon",
+        { userID: Number(selectedUser), couponID: couponData.couponID },
+        axiosConfig
+      );
+      console.log("Coupon send response:", response.data);
+
+      setSnackbarMessage(response.data.message);
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+      setOpenSendDialog(false);
+    } catch (error) {
+      console.error("Failed to send coupon:", error);
+      setSnackbarMessage("Failed to send coupon.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    }
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -220,6 +261,14 @@ function Coupons() {
                 >
                   Add Coupon
                 </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={() => setOpenSendDialog(true)}
+                  style={{ marginTop: 20, marginLeft: 10 }}
+                >
+                  Send Coupon
+                </Button>
               </MDBox>
               <MDBox pt={3}>
                 <DataTable
@@ -235,6 +284,60 @@ function Coupons() {
         </Grid>
       </MDBox>
 
+      {/* Send Coupon Dialog */}
+      {/* Send Coupon Dialog */}
+      <Dialog open={openSendDialog} onClose={() => setOpenSendDialog(false)}>
+        <DialogTitle>Send Coupon</DialogTitle>
+        <DialogContent>
+          <TextField
+            select
+            fullWidth
+            label="Select Coupon"
+            variant="outlined"
+            value={couponData.couponID}
+            onChange={(e) =>
+              setCouponData({
+                ...couponData,
+                couponID: e.target.value,
+              })
+            }
+            margin="normal"
+            SelectProps={{ native: true }}
+          >
+            <option value=""></option>
+            {rows.map((coupon) => (
+              <option key={coupon.couponID} value={coupon.couponID}>
+                {coupon.type} - {coupon.shuma}
+              </option>
+            ))}
+          </TextField>
+          <TextField
+            select
+            fullWidth
+            label="Select User"
+            variant="outlined"
+            value={selectedUser}
+            onChange={(e) => setSelectedUser(e.target.value)}
+            margin="normal"
+            SelectProps={{ native: true }}
+          >
+            <option value=""></option>
+            {users.map((user) => (
+              <option key={user.userID} value={user.userID}>
+                {user.emri} ({user.mbiemri})
+              </option>
+            ))}
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenSendDialog(false)} color="info">
+            Cancel
+          </Button>
+          <Button onClick={handleSendCoupon} color="primary">
+            Send
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>{dialogType === "edit" ? "Edit Coupon" : "Add Coupon"}</DialogTitle>
         <DialogContent>

@@ -45,6 +45,7 @@ import Orders from "layouts/orders";
 import Returns from "layouts/returns";
 import Coupons from "layouts/coupons";
 import Reviews from "layouts/reviews";
+import Notifications from "layouts/notifications";
 import Logout from "layouts/logout";
 
 // @mui icons
@@ -122,6 +123,14 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/reviews",
     component: <Reviews />,
+  },
+  {
+    type: "collapse",
+    name: "Notifications",
+    key: "notifications",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/notifications",
+    component: <Notifications />,
   },
   {
     type: "collapse",

@@ -285,7 +285,6 @@ function Coupons() {
       </MDBox>
 
       {/* Send Coupon Dialog */}
-      {/* Send Coupon Dialog */}
       <Dialog open={openSendDialog} onClose={() => setOpenSendDialog(false)}>
         <DialogTitle>Send Coupon</DialogTitle>
         <DialogContent>
